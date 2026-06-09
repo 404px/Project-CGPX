@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT 기출문제 모의고사 시스템</title>
+  <title>CBT 국가기술자격 모의고사 시스템</title>
   
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -167,7 +167,12 @@
         
         <!-- Part 1: Select Exam Round -->
         <div class="space-y-2">
-          <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">1단계: 시험 회차 선택</label>
+          <div class="flex justify-between items-center">
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">1단계: 시험 회차 선택</label>
+            <button onclick="fetchExamRoundsList()" class="text-[10px] text-indigo-500 hover:underline flex items-center gap-1 font-bold">
+              <i class="fa-solid fa-arrows-rotate"></i> 리스트 새로고침
+            </button>
+          </div>
           <div class="relative">
             <select id="exam-round-select" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none">
               <option value="" disabled selected>목록을 가져오는 중...</option>
@@ -209,7 +214,7 @@
         </div>
 
         <!-- Start Button -->
-        <button onclick="loadAndStartExam()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/20 transition-all">
+        <button id="start-exam-button" onclick="loadAndStartExam()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/20 transition-all">
           <i class="fa-solid fa-play"></i>
           <span>모의고사 시작하기</span>
         </button>
@@ -506,10 +511,10 @@
     // AJAX: Fetch 회차 목록 (list.json)
     async function fetchExamRoundsList() {
       const selectElement = document.getElementById('exam-round-select');
+      selectElement.innerHTML = '<option value="" disabled selected>목록을 가져오는 중...</option>';
       try {
-        // GitHub Pages absolute path issues are solved using relative path
         const response = await fetch('./data/list.json');
-        if (!response.ok) throw new Error('회차 목록 파일을 읽지 못했습니다.');
+        if (!response.ok) throw new Error(`HTTP 에러! 상태코드: ${response.status}`);
         
         const data = await response.json();
         selectElement.innerHTML = '';
@@ -538,12 +543,12 @@
 
       } catch (err) {
         console.error(err);
-        selectElement.innerHTML = '<option value="" disabled selected>오류: list.json 로드 실패</option>';
+        selectElement.innerHTML = '<option value="" disabled selected>에러: list.json 로드 실패</option>';
         showCustomModal(
           "fa-solid fa-triangle-exclamation",
           "text-rose-500 bg-rose-50 dark:bg-rose-950/30",
           "목록 로드 실패",
-          "data/list.json 파일을 서버에서 불러오지 못했습니다. 경로와 업로드 상태를 검증하세요.",
+          `<b>data/list.json</b> 파일을 불러오지 못했습니다.<br><br>상세에러: <span class='text-rose-500 font-mono text-[11px]'>${err.message}</span><br><br>로컬에서 바로 실행 시 CORS 정책으로 차단되었을 수 있으니 GitHub Pages에 업로드 후 접속해 보십시오.`,
           [{ text: "닫기", style: "bg-slate-800 text-white" }]
         );
       }
@@ -578,14 +583,14 @@
       }
 
       // Show loader
-      const startBtn = document.querySelector('button[onclick="loadAndStartExam()"]');
+      const startBtn = document.getElementById('start-exam-button');
       const originHtml = startBtn.innerHTML;
       startBtn.disabled = true;
       startBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>문제를 불러오는 중...</span>';
 
       try {
         const response = await fetch(`./data/${selectedRoundKey}.json`);
-        if (!response.ok) throw new Error('회차 문제 파일을 읽지 못했습니다.');
+        if (!response.ok) throw new Error(`HTTP 에러! 상태코드: ${response.status}`);
         
         const data = await response.json();
         
@@ -617,7 +622,7 @@
           "fa-solid fa-triangle-exclamation",
           "text-rose-500 bg-rose-50 dark:bg-rose-950/30",
           "문제 파일 로드 실패",
-          `data/${selectedRoundKey}.json 파일을 읽는 중에 오류가 발생했습니다. 파일이 해당 폴더 경로에 올바르게 존재하는지 점검해 보십시오.`,
+          `<b>data/${selectedRoundKey}.json</b> 파일을 성공적으로 해석하지 못했습니다.<br><br>상세에러: <span class='text-rose-500 font-mono text-[11px]'>${err.message}</span><br><br>JSON 문법 오류일 수 있으므로 해당 문제 파일이 깨지지 않았는지 점검해 보십시오.`,
           [{ text: "닫기", style: "bg-slate-800 text-white" }]
         );
       } finally {
@@ -1039,6 +1044,7 @@
       }
     }
 
+    // Explicit coordinate jump
     function jumpToQuestion(idx) {
       currentFocusIdx = idx;
       renderActiveQuestion();
