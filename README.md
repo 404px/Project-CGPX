@@ -1,8 +1,8 @@
 # Project-CGPX
 For Hosting
 
-Private Repository
+Personal Repository
 
-⚠️ This repository is private and access is restricted.
+This repository is publicly visible but is maintained for personal use and experimentation.
 
-Unauthorized access, copying, distribution, or disclosure of the contents is prohibited.
+No external support, maintenance guarantees, or contribution process is provided.
