@@ -28,15 +28,15 @@
   {
     "id": 3,
     "category": "기초전기공학 및 전자제어",
-    "question": "100[V]를 인가하여 전기량 30[C]을 이동시키는 데 5초 걸렸다. 이때의 전력[W]은?",
+    "question": "100[V]를 인가하여 전기량 30[C]을 이동시키는 데 5초 걸렸다. 이때의 전력[kW]은?",
     "options": [
       "0.3",
       "0.6",
       "1.5",
       "600"
     ],
-    "answer": 4,
-    "explanation": "전기 에너지 $W[\\text{J}]$는 전압 $V[\\text{V}]$, 전류 $I[\\text{A}]$, 시간 $t[\\text{s}]$의 곱인 동시에 전력 $P[\\text{W}]$와 시간 $t[\\text{s}]$의 곱이다.\n$$W = V \\times I \\times t$$\n$$P = \\frac{W}{t} = V \\times I$$\n전하량 $1[\\text{C}]$은 전류 $1[\\text{A}]$가 $1[\\text{s}]$ 동안 흐를 때 전달되는 전하량이므로 총 전력량은 다음과 같다.\n$$W = 100[\\text{V}] \\times 30[\\text{C}] = 3,000[\\text{J}]$$\n걸린 시간이 5초이므로 이때의 전력은 다음과 같다.\n$$P = \\frac{3,000[\\text{J}]}{5[\\text{s}]} = 600[\\text{W}]$$\n<em>문제 보기의 정답에 따라 ④번이 정답입니다.</em>"
+    "answer": 2,
+    "explanation": "전기 에너지 $W[\\text{J}]$는 전압 $V[\\text{V}]$, 전류 $I[\\text{A}]$, 시간 $t[\\text{s}]$의 곱인 동시에 전력 $P[\\text{W}]$와 시간 $t[\\text{s}]$의 곱이다.\n$$W = V \\times I \\times t$$\n$$P = \\frac{W}{t} = V \\times I$$\n전하량 $1[\\text{C}]$은 전류 $1[\\text{A}]$가 $1[\\text{s}]$ 동안 흐를 때 전달되는 전하량이므로 총 전력량은 다음과 같다.\n$$W = 100[\\text{V}] \\times 30[\\text{C}] = 3,000[\\text{J}]$$\n걸린 시간이 5초이므로 이때의 전력은 다음과 같다.\n$$P = \\frac{3,000[\\text{J}]}{5[\\text{s}]} = 600[\\text{W}] = 0.6[\\text{kW}]$$\n<em>문제 보기의 정답에 따라 ②번이 정답입니다.</em>"
   },
   {
     "id": 4,
