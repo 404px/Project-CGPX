@@ -186,11 +186,11 @@
           <i class="fa-solid fa-elevator text-sm"></i>
           <span>승강기기능사</span>
         </button>
-        <button id="tab-btn-railway" onclick="switchLicenseCategory('railway')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+        <button id="tab-btn-railway" onclick="switchLicenseCategory('railway')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-650 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
           <i class="fa-solid fa-train text-sm"></i>
           <span>철도전기신호</span>
         </button>
-        <button id="tab-btn-com" onclick="switchLicenseCategory('com')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+        <button id="tab-btn-com" onclick="switchLicenseCategory('com')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-650 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
           <i class="fa-solid fa-desktop text-sm"></i>
           <span>컴활 1급</span>
         </button>
@@ -208,7 +208,7 @@
             </button>
           </div>
           <div class="relative">
-            <select id="exam-round-select" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-850 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none transition-colors">
+            <select id="exam-round-select" onchange="updateSelectedRoundKey(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-850 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none transition-colors">
               <!-- Dynamically populated -->
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
@@ -590,6 +590,11 @@
       refreshExamRounds();
     }
 
+    // Explicitly update variable when select option changes
+    function updateSelectedRoundKey(val) {
+      selectedRoundKey = val;
+    }
+
     // Refresh round select based on selected tab category and dynamic filter criteria
     async function refreshExamRounds() {
       const selectElement = document.getElementById('exam-round-select');
@@ -618,14 +623,18 @@
           return;
         }
 
-        keys.forEach((key) => {
+        keys.forEach((key, index) => {
           const opt = document.createElement('option');
           opt.value = key;
           opt.textContent = data[key];
+          // 첫 번째 아이템 기본 선택 처리
+          if (index === 0) {
+            opt.selected = true;
+            selectedRoundKey = key;
+          }
           selectElement.appendChild(opt);
         });
 
-        selectedRoundKey = selectElement.value;
       } catch (err) {
         // Safe UX response when list.json is missing or not readable
         selectElement.innerHTML = `<option value="" disabled selected>기출문제 파일 연동 대기중 (list.json 미발견)</option>`;
@@ -650,6 +659,12 @@
 
     // Dynamic Database Loading (Pure fetch-only mechanism)
     async function loadAndStartExam() {
+      // 시작 직전, 엘리먼트의 최종 선택 값을 강제로 직접 추출하여 변수에 바인딩 (인식 오류 완전 제거)
+      const selectBox = document.getElementById('exam-round-select');
+      if (selectBox && selectBox.value) {
+        selectedRoundKey = selectBox.value;
+      }
+
       if (!selectedRoundKey) {
         showCustomModal(
           "fa-solid fa-file-circle-exclamation",
@@ -661,7 +676,6 @@
         return;
       }
 
-      const selectBox = document.getElementById('exam-round-select');
       const chosenText = selectBox.options[selectBox.selectedIndex].text;
 
       // Show loader
@@ -982,17 +996,17 @@
           ${q.options.map((option, oIdx) => {
             const num = oIdx + 1;
             
-            // Default styling for unselected option in light and dark mode
+            // 기본 비활성 스타일
             let btnStyle = "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300";
             let indicatorStyle = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-slate-800 group-hover:text-brand-600 dark:group-hover:text-brand-400";
             
-            // Restructured standard styling for selected options to ensure absolute readability in light & dark modes
+            // 마킹 선택 상태에서 다크/라이트 가독성 완벽 개선
             if (selectedOption === num) {
               btnStyle = "border-brand-600 dark:border-brand-500 bg-brand-600 dark:bg-brand-500 text-white dark:text-white shadow-md font-semibold";
               indicatorStyle = "bg-white/20 dark:bg-white/20 text-white dark:text-white";
             }
 
-            // Practice Mode self check evaluation results styling
+            // 연습모드 채점 상태 스타일
             if (selectedStudyMode === 'practice' && hasChecked) {
               const isUserChoice = selectedOption === num;
               const isCorrectAnswer = q.answer === num;
@@ -1058,7 +1072,7 @@
           `;
         } else {
           feedbackBlock.innerHTML = `
-            <p class="text-center text-[11px] text-slate-450 py-2">
+            <p class="text-center text-[11px] text-slate-455 py-2">
               <i class="fa-solid fa-info-circle mr-1"></i> 임의의 보기를 마킹하면 해당 문항에 대한 자가 채점 버튼이 활성화됩니다.
             </p>
           `;
@@ -1155,7 +1169,7 @@
       
       ['all', 'unsolved', 'flagged'].forEach(t => {
         const btn = document.getElementById(`btn-filter-${t}`);
-        btn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-650 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent";
+        btn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-655 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent";
       });
 
       const activeBtn = document.getElementById(`btn-filter-${filterType}`);
@@ -1330,7 +1344,7 @@
             <div class="space-y-2 flex-grow">
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[10px] font-semibold text-slate-400">${q.category}</span>
-                <span class="text-[9px] ${isCorrect ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-400'} px-2 py-0.2 rounded font-extrabold uppercase">
+                <span class="text-[9px] ${isCorrect ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-950 text-rose-805 text-rose-400'} px-2 py-0.2 rounded font-extrabold uppercase">
                   ${isCorrect ? '정답' : '오답'}
                 </span>
               </div>
