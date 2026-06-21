@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CBT 국가기술자격 모의고사 시스템</title>
   
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -20,10 +19,8 @@
     }
   </script>
   
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- MathJax Config -->
   <script>
     window.MathJax = {
       tex: {
@@ -65,6 +62,15 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+
+    /* 탭 스크롤바 숨기기용 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
     
     .dark mjx-container {
       color: #e2e8f0 !important;
@@ -97,12 +103,11 @@
     });
   </script>
 
-  <!-- Header -->
-  <header class="bg-indigo-600 dark:bg-indigo-950 text-white shadow-md py-4 px-4 sm:px-6 sticky top-0 z-40 transition-colors">
+  <header class="bg-indigo-600 dark:bg-indigo-950 text-white shadow-md py-4 px-4 sm:px-6 sticky top-0 z-50 transition-colors">
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
       <div class="flex items-center gap-3 w-full sm:w-auto">
         <div class="bg-white/10 dark:bg-white/5 p-2.5 rounded-xl border border-white/20">
-          <i class="fa-solid fa-elevator text-2xl text-yellow-300"></i>
+          <i class="fa-solid fa-laptop-code text-2xl text-yellow-300" id="header-icon"></i>
         </div>
         <div>
           <h1 class="text-lg sm:text-xl font-bold tracking-tight">CBT 국가기술자격 모의고사</h1>
@@ -119,7 +124,7 @@
           
           <div id="theme-dropdown" class="hidden absolute right-0 mt-2 w-36 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden text-slate-700 dark:text-slate-300">
             <button onclick="changeTheme('system')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
-              <i class="fa-solid fa-laptop text-slate-400"></i> 기기 설정 연동
+              <i class="fa-solid fa-laptop text-slate-400"></i> 기기 연동
             </button>
             <button onclick="changeTheme('light')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
               <i class="fa-solid fa-sun text-amber-500"></i> 라이트 모드
@@ -143,7 +148,22 @@
     </div>
   </header>
 
-  <!-- Help Shortcut Banner for Desktop -->
+  <div class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-[72px] sm:top-[76px] z-40 transition-colors shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto hide-scrollbar" aria-label="Tabs">
+        <button onclick="switchSubjectTab('elevator')" id="tab-elevator" class="tab-btn active flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap">
+          <i class="fa-solid fa-elevator text-indigo-500"></i> 승강기기능사
+        </button>
+        <button onclick="switchSubjectTab('railway')" id="tab-railway" class="tab-btn flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 border-transparent hover:border-slate-300 dark:hover:border-slate-700">
+          <i class="fa-solid fa-train text-amber-500"></i> 철도전기신호기능사
+        </button>
+        <button onclick="switchSubjectTab('comal')" id="tab-comal" class="tab-btn flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 border-transparent hover:border-slate-300 dark:hover:border-slate-700">
+          <i class="fa-solid fa-file-excel text-emerald-500"></i> 컴퓨터 활용능력 1급
+        </button>
+      </nav>
+    </div>
+  </div>
+
   <div class="hidden md:block bg-indigo-50 dark:bg-slate-900 border-b border-indigo-100 dark:border-slate-800 text-indigo-700 dark:text-slate-300 text-xs py-1 px-6">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
       <span>💡 데스크톱 단축키: <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">1</kbd>~<kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">4</kbd> 보기 선택 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">←</kbd> <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">→</kbd> 이전/다음 문항 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">B</kbd> 북마크 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">Enter</kbd> 연습정답확인</span>
@@ -151,21 +171,17 @@
     </div>
   </div>
 
-  <!-- Main Container -->
   <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col relative">
 
-    <!-- 1. ROUND & MODE SELECTION VIEW -->
     <div id="mode-selection-view" class="w-full max-w-2xl mx-auto my-auto py-8 sm:py-12 px-4 flex flex-col justify-center items-center">
       <div class="text-center mb-8">
-        <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold mb-3 inline-block">CBT Smart Engine v2</span>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">국가기술자격 모의고사</h2>
+        <span id="subject-badge" class="px-3 py-1 bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 rounded-full text-xs font-semibold mb-3 inline-block">승강기기능사 과정</span>
+        <h2 id="subject-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white">모의고사 학습 설정</h2>
         <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">학습할 시험 회차와 모드를 선택하세요.</p>
       </div>
 
-      <!-- Config Card -->
       <div class="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
         
-        <!-- Part 1: Select Exam Round -->
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">1단계: 시험 회차 선택</label>
@@ -183,12 +199,10 @@
           </div>
         </div>
 
-        <!-- Part 2: Select Study Mode -->
         <div class="space-y-2">
           <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">2단계: 학습 모드 지정</label>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             
-            <!-- Practice Mode Selector -->
             <button onclick="setStudyMode('practice')" id="mode-btn-practice" class="group flex items-start gap-4 p-4 rounded-2xl border-2 border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/10 text-left transition-all">
               <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0">
                 <i class="fa-solid fa-graduation-cap"></i>
@@ -199,21 +213,19 @@
               </div>
             </button>
 
-            <!-- Exam Mode Selector -->
             <button onclick="setStudyMode('exam')" id="mode-btn-exam" class="group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-indigo-300 text-left transition-all">
               <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 dark:text-indigo-400 flex-shrink-0">
                 <i class="fa-regular fa-file-lines"></i>
               </div>
               <div>
                 <h4 class="font-bold text-sm text-slate-800 dark:text-slate-200">실전 모드</h4>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">60분 시간 제한과 마킹 후 제출하여 점수를 봅니다.</p>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">제한 시간 내에 풀고, 최종 제출 후 점수를 확인합니다.</p>
               </div>
             </button>
 
           </div>
         </div>
 
-        <!-- Start Button -->
         <button id="start-exam-button" onclick="loadAndStartExam()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/20 transition-all">
           <i class="fa-solid fa-play"></i>
           <span>모의고사 시작하기</span>
@@ -221,23 +233,15 @@
 
       </div>
 
-      <!-- Quick Info -->
-      <div class="mt-8 text-center text-slate-400 dark:text-slate-500 text-[11px]">
-        <p>• 60문제 중 36문제(60점) 이상 정답 시 합격선 통과로 표기됩니다.</p>
-        <p class="mt-1">• GitHub Pages 정적 오프라인 로딩과 다크 모드가 전면 연동됩니다.</p>
-      </div>
     </div>
 
-    <!-- 2. MAIN WORKSPACE (QUESTIONS & OMR) -->
     <div id="cbt-workspace" class="hidden w-full flex flex-col lg:flex-row gap-6">
       
-      <!-- Questions List Area -->
       <div class="w-full lg:w-3/4 flex flex-col gap-5">
         
-        <!-- Filter & Navigation Bar -->
         <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors">
           <div class="flex flex-wrap gap-1.5 items-center w-full sm:w-auto">
-            <button onclick="filterQuestions('all')" id="btn-filter-all" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">전체 (60)</button>
+            <button onclick="filterQuestions('all')" id="btn-filter-all" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">전체보기</button>
             <button onclick="filterQuestions('unsolved')" id="btn-filter-unsolved" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">미푼 문항</button>
             <button onclick="filterQuestions('flagged')" id="btn-filter-flagged" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
               <i class="fa-solid fa-bookmark text-amber-500"></i>북마크
@@ -257,25 +261,21 @@
           </div>
         </div>
 
-        <!-- Question Render Container (Touch Swipe Support) -->
         <div id="swipe-viewport" class="relative">
           <div id="questions-viewport" class="space-y-6"></div>
         </div>
 
-        <!-- Pagination Navigation Grid -->
         <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
           <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center justify-between">
             <span>문항 네비게이터</span>
             <span class="text-[11px] font-normal text-slate-400">숫자를 클릭하면 해당 문항으로 점프합니다.</span>
           </h4>
-          <div class="grid grid-cols-6 xs:grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-15 gap-1.5" id="nav-badge-grid"></div>
+          <div class="grid grid-cols-6 xs:grid-cols-8 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-12 gap-1.5" id="nav-badge-grid"></div>
         </div>
       </div>
 
-      <!-- OMR Side Panel -->
-      <div id="omr-drawer" class="fixed lg:static inset-y-0 right-0 w-[280px] sm:w-[320px] lg:w-1/4 bg-white dark:bg-slate-900 border-l lg:border border-slate-200 dark:border-slate-800 shadow-2xl lg:shadow-md z-40 transform translate-x-full lg:translate-x-0 transition-transform duration-300 rounded-l-2xl lg:rounded-2xl overflow-hidden flex flex-col h-full lg:h-[calc(100vh-140px)] lg:sticky lg:top-24">
+      <div id="omr-drawer" class="fixed lg:static inset-y-0 right-0 w-[280px] sm:w-[320px] lg:w-1/4 bg-white dark:bg-slate-900 border-l lg:border border-slate-200 dark:border-slate-800 shadow-2xl lg:shadow-md z-40 transform translate-x-full lg:translate-x-0 transition-transform duration-300 rounded-l-2xl lg:rounded-2xl overflow-hidden flex flex-col h-full lg:h-[calc(100vh-180px)] lg:sticky lg:top-36">
         
-        <!-- OMR Header -->
         <div class="p-4 bg-slate-800 dark:bg-slate-950 text-white flex justify-between items-center">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-border-all text-yellow-400"></i>
@@ -291,32 +291,25 @@
           </div>
         </div>
 
-        <!-- OMR Bubble List (Scrollable) -->
         <div class="flex-grow p-3 sm:p-4 overflow-y-auto custom-scrollbar space-y-2 bg-slate-50 dark:bg-slate-900/40" id="omr-card-list"></div>
 
-        <!-- OMR Footer / Submission Area -->
         <div class="p-4 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800/80 flex flex-col gap-2">
           <button id="submit-exam-btn" onclick="confirmSubmitExam()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/20 transition">
             <i class="fa-solid fa-circle-check"></i>
-            <span>답안지 제출 및 채점 결과 보기</span>
+            <span>답안지 제출 및 채점</span>
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Floating OMR Trigger for Mobile -->
     <button id="omr-floating-trigger" onclick="toggleOMRDrawer()" class="hidden fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-indigo-600 text-white rounded-full shadow-2xl z-30 flex items-center justify-center hover:bg-indigo-700 transition transform active:scale-95 border border-indigo-500">
       <i class="fa-solid fa-clipboard-list text-xl"></i>
       <span class="absolute -top-1 -right-1 bg-rose-500 text-white font-bold font-mono text-[9px] w-5 h-5 rounded-full flex items-center justify-center border border-white" id="omr-floating-badge">0</span>
     </button>
 
-    <!-- OMR Backdrop overlay for Mobile -->
     <div id="omr-backdrop" onclick="toggleOMRDrawer()" class="hidden fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"></div>
 
-    <!-- 3. SCORE ANALYSIS RESULT VIEW -->
     <div id="results-view" class="hidden w-full max-w-4xl mx-auto py-4 space-y-6">
-      
-      <!-- Summary Hero Card -->
       <div class="bg-gradient-to-br from-indigo-900 to-slate-900 dark:from-slate-900 dark:to-indigo-950 rounded-3xl text-white p-6 sm:p-8 shadow-xl relative overflow-hidden">
         <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-indigo-700/20 rounded-full blur-2xl"></div>
         <div class="absolute -left-12 -top-12 w-64 h-64 bg-purple-700/10 rounded-full blur-2xl"></div>
@@ -327,10 +320,9 @@
               판독 중
             </span>
             <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">CBT 평가 완료 리포트</h2>
-            <p class="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">선택하신 회차에 대한 전격 채점 결과입니다. 각 영역별 통계 자료를 바탕으로 복습을 시작하세요.</p>
+            <p class="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">선택하신 종목에 대한 전격 채점 결과입니다. 오답을 즉시 복습하세요.</p>
           </div>
 
-          <!-- Score Circle Indicator -->
           <div class="flex items-center justify-center gap-5 bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-sm w-full md:w-auto">
             <div class="text-center">
               <p class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-1">나의 평가 점수</p>
@@ -338,22 +330,21 @@
             </div>
             <div class="h-10 w-px bg-white/20"></div>
             <div class="text-slate-300 text-[11px] space-y-1 text-left">
-              <p>• 정답 개수: <span class="font-bold text-emerald-400 font-mono" id="result-correct-count">0</span> / <span id="results-total-count">60</span></p>
-              <p>• 오답 개수: <span class="font-bold text-rose-400 font-mono" id="result-wrong-count">0</span></p>
-              <p>• 소요 시간: <span class="font-bold text-white font-mono" id="result-elapsed-time">0분 0초</span></p>
+              <p>• 정답: <span class="font-bold text-emerald-400 font-mono" id="result-correct-count">0</span> 문항</p>
+              <p>• 오답: <span class="font-bold text-rose-400 font-mono" id="result-wrong-count">0</span> 문항</p>
+              <p>• 소요: <span class="font-bold text-white font-mono" id="result-elapsed-time">0분 0초</span></p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Action Buttons -->
       <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 transition-colors">
         <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
-          <i class="fa-solid fa-clipboard-list text-indigo-500 dark:text-indigo-400 mr-1.5"></i> 오답 모아풀기(오답노트)를 구동하여 즉시 복습을 이행하십시오.
+          <i class="fa-solid fa-clipboard-list text-indigo-500 dark:text-indigo-400 mr-1.5"></i> 오답 모아풀기를 구동하여 즉시 복습하십시오.
         </p>
         <div class="flex gap-2 w-full sm:w-auto">
           <button onclick="resetApp()" class="flex-1 sm:flex-initial px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition">
-            <i class="fa-solid fa-arrows-rotate mr-1.5"></i> 메인 화면으로
+            <i class="fa-solid fa-arrows-rotate mr-1.5"></i> 홈으로 가기
           </button>
           <button onclick="exportUnsolved()" class="flex-1 sm:flex-initial px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold rounded-xl text-xs transition">
             <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> 오답 집중 모드 시작
@@ -361,82 +352,15 @@
         </div>
       </div>
 
-      <!-- Analysis Breakdowns -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- 1과목 -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-2.5 py-1 rounded-md border border-indigo-100 dark:border-indigo-800">1과목</span>
-              <span class="text-xs font-bold text-slate-500" id="sec1-ratio">0/0</span>
-            </div>
-            <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">안전관리 및 재해예방</h4>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal">안전 표준, 사다리 룰, 안전체크리스트, 보건 표식 등</p>
-          </div>
-          <div class="mt-4">
-            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
-              <div id="sec1-bar" class="bg-indigo-600 dark:bg-indigo-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2과목 -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-2.5 py-1 rounded-md border border-emerald-100 dark:border-emerald-800">2과목</span>
-              <span class="text-xs font-bold text-slate-500" id="sec2-ratio">0/0</span>
-            </div>
-            <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">승강기 기계 및 유압 제어</h4>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal">트랙션 밸런싱, 웜 감속기, 로프 설계, 유압 하강 밸브 등</p>
-          </div>
-          <div class="mt-4">
-            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
-              <div id="sec2-bar" class="bg-emerald-600 dark:bg-emerald-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3과목 -->
-        <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2.5 py-1 rounded-md border border-amber-100 dark:border-amber-800">3과목</span>
-              <span class="text-xs font-bold text-slate-500" id="sec3-ratio">0/0</span>
-            </div>
-            <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm">기초전기공학 및 전자제어</h4>
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal">저항 병렬 계산, 불대수 간소화, 복권전동기, 인터록 기하 등</p>
-          </div>
-          <div class="mt-4">
-            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5">
-              <div id="sec3-bar" class="bg-amber-600 dark:bg-amber-400 h-1.5 rounded-full" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Detailed list -->
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-900/60 flex justify-between items-center">
           <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">전항목 정밀 진단</h3>
-          <div class="flex gap-2">
-            <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>정답
-            </span>
-            <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 text-[10px] font-bold rounded-lg flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>오답
-            </span>
-          </div>
         </div>
-        
         <div class="divide-y divide-slate-100 dark:divide-slate-800 p-4 sm:p-6" id="results-detailed-list"></div>
       </div>
-
     </div>
-
   </main>
 
-  <!-- Generic Popup Modal -->
   <div id="custom-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
     <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-sm w-full overflow-hidden transform scale-95 transition-all duration-300 border border-slate-200 dark:border-slate-800">
       <div class="p-6 text-center">
@@ -448,21 +372,14 @@
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-6 text-center text-[11px] text-slate-400 dark:text-slate-500 transition-colors">
-    <div class="max-w-7xl mx-auto px-6">
-      <p>© 2026 CBT Dynamic Loader Engine. All rights reserved.</p>
-      <p class="mt-1">회차별 JSON 파일 기반 동적 로딩 완벽 구현</p>
-    </div>
-  </footer>
-
-  <!-- Complete Javascript Engine -->
   <script>
     // Global State
+    let currentSubject = 'elevator'; // 'elevator' | 'railway' | 'comal'
     let selectedRoundKey = '';
-    let selectedStudyMode = 'practice'; // 'practice' or 'exam'
+    let selectedStudyMode = 'practice';
+    let appMode = 'practice'; // 수정: 선언 누락 오류 방지
     
-    let questionsDatabase = []; // Populated dynamically via AJAX/Fetch
+    let questionsDatabase = [];
     let userAnswers = [];
     let bookmarkedQuestions = [];
     let checkedQuestions = [];
@@ -474,29 +391,49 @@
     let examSecondsRemaining = 3600;
     let examSecondsElapsed = 0;
 
-    // Swipe Event variables
     let touchStartX = 0;
     let touchEndX = 0;
 
+    // 종목별 메타데이터 매핑
+    const subjectsMeta = {
+      'elevator': {
+        title: '승강기기능사',
+        icon: 'fa-elevator',
+        color: 'text-indigo-500',
+        badgeBg: 'bg-indigo-100 dark:bg-indigo-950',
+        badgeText: 'text-indigo-700 dark:text-indigo-300',
+        jsonFile: './data/elevator_list.json'
+      },
+      'railway': {
+        title: '철도전기신호기능사',
+        icon: 'fa-train',
+        color: 'text-amber-500',
+        badgeBg: 'bg-amber-100 dark:bg-amber-950',
+        badgeText: 'text-amber-700 dark:text-amber-300',
+        jsonFile: './data/railway_list.json'
+      },
+      'comal': {
+        title: '컴퓨터 활용능력 1급',
+        icon: 'fa-file-excel',
+        color: 'text-emerald-500',
+        badgeBg: 'bg-emerald-100 dark:bg-emerald-950',
+        badgeText: 'text-emerald-700 dark:text-emerald-300',
+        jsonFile: './data/comal_list.json'
+      }
+    };
+
     window.onload = function() {
-      // 1. Fetch available exam rounds first
-      fetchExamRoundsList();
+      switchSubjectTab('elevator'); // 초기 로드 시 기본 탭 세팅
+      setStudyMode('practice'); // UI 초기화 강제 호출 (수정 반영)
 
-      // 2. Setup Touch gesture capture
       const swipeArea = document.getElementById('swipe-viewport');
-      swipeArea.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-      }, { passive: true });
-
+      swipeArea.addEventListener('touchstart', (e) => touchStartX = e.changedTouches[0].screenX, { passive: true });
       swipeArea.addEventListener('touchend', (e) => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipeGesture();
       }, { passive: true });
 
-      // 3. Keyboard Shortcut listener
       document.addEventListener('keydown', handleKeyboardShortcuts);
-
-      // 4. Dropdown alignment
       document.addEventListener('click', function(e) {
         const dropdown = document.getElementById('theme-dropdown');
         const container = document.getElementById('theme-selector-container');
@@ -504,16 +441,44 @@
           dropdown.classList.add('hidden');
         }
       });
-
       syncThemeIcon();
     };
 
-    // AJAX: Fetch 회차 목록 (list.json)
+    // 탭 전환 핸들러
+    function switchSubjectTab(subjectKey) {
+      if(currentSubject !== subjectKey) {
+        resetApp(); // 진행 중인 시험이 있다면 초기화
+      }
+      currentSubject = subjectKey;
+      const meta = subjectsMeta[subjectKey];
+
+      // 탭 UI 스타일 업데이트
+      ['elevator', 'railway', 'comal'].forEach(key => {
+        const btn = document.getElementById(`tab-${key}`);
+        if(key === subjectKey) {
+          btn.className = `tab-btn active flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap border-${meta.color.split('-')[1]}-500 ${meta.color}`;
+        } else {
+          btn.className = "tab-btn flex items-center gap-2 py-3 px-4 text-sm font-bold border-b-2 transition-colors whitespace-nowrap text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 border-transparent hover:border-slate-300 dark:hover:border-slate-700";
+        }
+      });
+
+      // 헤더 및 모드 셀렉션 UI 갱신
+      document.getElementById('header-icon').className = `fa-solid ${meta.icon} text-2xl text-yellow-300`;
+      document.getElementById('subject-badge').className = `px-3 py-1 rounded-full text-xs font-semibold mb-3 inline-block ${meta.badgeBg} ${meta.badgeText}`;
+      document.getElementById('subject-badge').textContent = `${meta.title} 과정`;
+      document.getElementById('loaded-exam-title').textContent = `${meta.title} - 원하시는 시험 회차를 아래에서 선택하세요.`;
+
+      fetchExamRoundsList();
+    }
+
+    // AJAX: Fetch 회차 목록
     async function fetchExamRoundsList() {
       const selectElement = document.getElementById('exam-round-select');
       selectElement.innerHTML = '<option value="" disabled selected>목록을 가져오는 중...</option>';
+      const meta = subjectsMeta[currentSubject];
+
       try {
-        const response = await fetch('./data/list.json');
+        const response = await fetch(meta.jsonFile);
         if (!response.ok) throw new Error(`HTTP 에러! 상태코드: ${response.status}`);
         
         const data = await response.json();
@@ -529,32 +494,26 @@
           const opt = document.createElement('option');
           opt.value = key;
           opt.textContent = data[key];
-          if (index === 0) opt.selected = true; // Select first item by default
+          if (index === 0) opt.selected = true;
           selectElement.appendChild(opt);
         });
 
-        // Initialize state
         selectedRoundKey = selectElement.value;
-
-        // Watch dropdown changes
-        selectElement.addEventListener('change', (e) => {
-          selectedRoundKey = e.target.value;
-        });
+        selectElement.addEventListener('change', (e) => selectedRoundKey = e.target.value);
 
       } catch (err) {
-        console.error(err);
-        selectElement.innerHTML = '<option value="" disabled selected>에러: list.json 로드 실패</option>';
-        showCustomModal(
-          "fa-solid fa-triangle-exclamation",
-          "text-rose-500 bg-rose-50 dark:bg-rose-950/30",
-          "목록 로드 실패",
-          `<b>data/list.json</b> 파일을 불러오지 못했습니다.<br><br>상세에러: <span class='text-rose-500 font-mono text-[11px]'>${err.message}</span><br><br>로컬에서 바로 실행 시 CORS 정책으로 차단되었을 수 있으니 GitHub Pages에 업로드 후 접속해 보십시오.`,
-          [{ text: "닫기", style: "bg-slate-800 text-white" }]
-        );
+        // 에러 시 테스트용 Mock 데이터 삽입 (로컬 환경 대응)
+        console.warn(`${meta.jsonFile} 로드 실패, 임시 데이터를 생성합니다.`);
+        selectElement.innerHTML = '';
+        const mockOpt = document.createElement('option');
+        mockOpt.value = 'mock_data';
+        mockOpt.textContent = `[테스트] ${meta.title} 최신 기출문제`;
+        mockOpt.selected = true;
+        selectElement.appendChild(mockOpt);
+        selectedRoundKey = 'mock_data';
       }
     }
 
-    // Toggle Landing Selector Buttons Style
     function setStudyMode(mode) {
       selectedStudyMode = mode;
       const practiceBtn = document.getElementById('mode-btn-practice');
@@ -569,35 +528,33 @@
       }
     }
 
-    // AJAX: Load questions file dynamically (e.g., ./data/2025_01.json) and ignite play view
     async function loadAndStartExam() {
-      if (!selectedRoundKey) {
-        showCustomModal(
-          "fa-solid fa-triangle-exclamation",
-          "text-amber-500 bg-amber-50 dark:bg-amber-950/30",
-          "회차 선택 누락",
-          "풀이할 시험 회차를 선택 목록에서 지정하십시오.",
-          [{ text: "알겠습니다", style: "bg-slate-800 text-white" }]
-        );
-        return;
-      }
+      if (!selectedRoundKey) return;
 
-      // Show loader
       const startBtn = document.getElementById('start-exam-button');
       const originHtml = startBtn.innerHTML;
       startBtn.disabled = true;
       startBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>문제를 불러오는 중...</span>';
 
       try {
-        const response = await fetch(`./data/${selectedRoundKey}.json`);
-        if (!response.ok) throw new Error(`HTTP 에러! 상태코드: ${response.status}`);
+        let data = [];
+        if (selectedRoundKey === 'mock_data') {
+          // 로컬 테스트용 가짜 데이터
+          data = Array.from({length: 60}, (_, i) => ({
+            id: i + 1,
+            category: subjectsMeta[currentSubject].title + ' 일반',
+            question: `테스트 문항 ${i + 1}입니다. 다음 중 올바른 것은? $x^2 + y^2 = r^2$`,
+            options: ['보기 1', '보기 2', '보기 3', '보기 4'],
+            answer: Math.floor(Math.random() * 4) + 1,
+            explanation: '이 문항은 임시 생성된 문항입니다. 실 데이터 JSON을 로드하면 실제 문항이 출력됩니다.'
+          }));
+        } else {
+          const response = await fetch(`./data/${currentSubject}/${selectedRoundKey}.json`);
+          if (!response.ok) throw new Error();
+          data = await response.json();
+        }
         
-        const data = await response.json();
-        
-        // Populate local runtime database
         questionsDatabase = data;
-        
-        // Reset dynamic tracking states based on active questions length
         const len = questionsDatabase.length;
         userAnswers = Array(len).fill(null);
         bookmarkedQuestions = Array(len).fill(false);
@@ -605,138 +562,71 @@
         currentFocusIdx = 0;
         currentFilter = 'all';
 
-        // Update titles
         document.getElementById('workspace-total-count').textContent = len;
-        document.getElementById('results-total-count').textContent = len;
         
         const selectBox = document.getElementById('exam-round-select');
         const chosenText = selectBox.options[selectBox.selectedIndex].text;
-        document.getElementById('loaded-exam-title').textContent = `${chosenText} 진행 중`;
+        document.getElementById('loaded-exam-title').textContent = `${subjectsMeta[currentSubject].title} - ${chosenText} 진행 중`;
 
-        // Start Layout Workspace
         startApp(selectedStudyMode);
 
       } catch (err) {
-        console.error(err);
-        showCustomModal(
-          "fa-solid fa-triangle-exclamation",
-          "text-rose-500 bg-rose-50 dark:bg-rose-950/30",
-          "문제 파일 로드 실패",
-          `<b>data/${selectedRoundKey}.json</b> 파일을 성공적으로 해석하지 못했습니다.<br><br>상세에러: <span class='text-rose-500 font-mono text-[11px]'>${err.message}</span><br><br>JSON 문법 오류일 수 있으므로 해당 문제 파일이 깨지지 않았는지 점검해 보십시오.`,
-          [{ text: "닫기", style: "bg-slate-800 text-white" }]
-        );
+        showCustomModal("fa-solid fa-triangle-exclamation", "text-rose-500 bg-rose-50", "로드 실패", "문제 파일 로드에 실패했습니다.");
       } finally {
         startBtn.disabled = false;
         startBtn.innerHTML = originHtml;
       }
     }
 
-    // Swipe Navigation
     function handleSwipeGesture() {
       const swipeDistance = touchEndX - touchStartX;
-      const minDistanceThreshold = 80;
-      
-      if (Math.abs(swipeDistance) > minDistanceThreshold) {
-        if (swipeDistance > 0) {
-          prevQuestion();
-        } else {
-          nextQuestion();
-        }
-      }
+      if (Math.abs(swipeDistance) > 80) swipeDistance > 0 ? prevQuestion() : nextQuestion();
     }
 
-    // Keyboard Shortcuts
     function handleKeyboardShortcuts(e) {
       if (document.getElementById('cbt-workspace').classList.contains('hidden')) return;
-
       const key = e.key;
-
-      if (key === '1' || key === '2' || key === '3' || key === '4') {
-        selectOption(currentFocusIdx, parseInt(key));
-        e.preventDefault();
-      }
-      
-      if (key === 'ArrowRight' || key === ']') {
-        nextQuestion();
-        e.preventDefault();
-      }
-      if (key === 'ArrowLeft' || key === '[') {
-        prevQuestion();
-        e.preventDefault();
-      }
-
-      if (key === 'b' || key === 'B' || key === 'f' || key === 'F') {
-        toggleBookmark(currentFocusIdx);
-        e.preventDefault();
-      }
-
-      if (key === 'Enter') {
-        if (selectedStudyMode === 'practice' && userAnswers[currentFocusIdx] !== null && !checkedQuestions[currentFocusIdx]) {
-          revealPracticeAnswer(currentFocusIdx);
-          e.preventDefault();
-        }
+      if (['1','2','3','4'].includes(key)) { selectOption(currentFocusIdx, parseInt(key)); e.preventDefault(); }
+      if (key === 'ArrowRight' || key === ']') { nextQuestion(); e.preventDefault(); }
+      if (key === 'ArrowLeft' || key === '[') { prevQuestion(); e.preventDefault(); }
+      if (key.toLowerCase() === 'b' || key.toLowerCase() === 'f') { toggleBookmark(currentFocusIdx); e.preventDefault(); }
+      if (key === 'Enter' && appMode === 'practice' && userAnswers[currentFocusIdx] !== null && !checkedQuestions[currentFocusIdx]) {
+        revealPracticeAnswer(currentFocusIdx); e.preventDefault();
       }
     }
 
-    function toggleThemeDropdown() {
-      const dropdown = document.getElementById('theme-dropdown');
-      dropdown.classList.toggle('hidden');
-    }
-
+    function toggleThemeDropdown() { document.getElementById('theme-dropdown').classList.toggle('hidden'); }
     function changeTheme(mode) {
       localStorage.setItem('cbt-theme', mode);
-      applySystemTheme();
-      syncThemeIcon();
+      applySystemTheme(); syncThemeIcon();
       document.getElementById('theme-dropdown').classList.add('hidden');
     }
-
     function syncThemeIcon() {
       const saved = localStorage.getItem('cbt-theme') || 'system';
       const icon = document.getElementById('current-theme-icon');
       const label = document.getElementById('theme-btn-label');
-      
-      if (saved === 'system') {
-        icon.className = "fa-solid fa-circle-half-stroke text-yellow-300";
-        label.textContent = "테마: 시스템";
-      } else if (saved === 'light') {
-        icon.className = "fa-solid fa-sun text-amber-500";
-        label.textContent = "테마: 라이트";
-      } else {
-        icon.className = "fa-solid fa-moon text-blue-400";
-        label.textContent = "테마: 다크";
-      }
+      if (saved === 'system') { icon.className = "fa-solid fa-circle-half-stroke text-yellow-300"; label.textContent = "테마: 시스템"; }
+      else if (saved === 'light') { icon.className = "fa-solid fa-sun text-amber-500"; label.textContent = "테마: 라이트"; }
+      else { icon.className = "fa-solid fa-moon text-blue-400"; label.textContent = "테마: 다크"; }
     }
-
     function toggleOMRDrawer() {
-      const drawer = document.getElementById('omr-drawer');
-      const backdrop = document.getElementById('omr-backdrop');
-      
-      drawer.classList.toggle('omr-drawer-active');
-      backdrop.classList.toggle('hidden');
+      document.getElementById('omr-drawer').classList.toggle('omr-drawer-active');
+      document.getElementById('omr-backdrop').classList.toggle('hidden');
     }
 
     function startApp(mode) {
       appMode = mode;
-      
       const statusBadge = document.getElementById('active-mode-badge');
       const timerWrapper = document.getElementById('exam-timer-wrapper');
-      const statusBar = document.getElementById('top-status-bar');
-      const omrSubmitBtn = document.getElementById('submit-exam-btn');
       
-      statusBar.classList.remove('hidden');
+      document.getElementById('top-status-bar').classList.remove('hidden');
       
       if (mode === 'practice') {
-        statusBadge.textContent = '연습 학습';
-        statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white";
+        statusBadge.textContent = '연습 학습'; statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white";
         timerWrapper.classList.add('hidden');
-        omrSubmitBtn.innerHTML = '<i class="fa-solid fa-graduation-cap"></i> <span>종합 평가 보고서 채점</span>';
-        omrSubmitBtn.className = "w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-500/20 transition duration-150";
-      } else if (mode === 'exam') {
-        statusBadge.textContent = '실전 시험';
-        statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white";
+      } else {
+        statusBadge.textContent = '실전 시험'; statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white";
         timerWrapper.classList.remove('hidden');
-        omrSubmitBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span>답안 제출 및 종료</span>';
-        omrSubmitBtn.className = "w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-500/20 transition duration-150";
         startExamTimer();
       }
 
@@ -749,48 +639,20 @@
       renderActiveQuestion();
     }
 
-    // Build OMR Card Rows dynamically based on loaded questions size
     function buildOMRCard() {
       const container = document.getElementById('omr-card-list');
       container.innerHTML = '';
-
       questionsDatabase.forEach((q, idx) => {
         const row = document.createElement('div');
         row.id = `omr-row-${idx}`;
-        row.className = `flex items-center justify-between p-1.5 rounded-xl border transition ${
-          currentFocusIdx === idx 
-            ? 'bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900' 
-            : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-850'
-        }`;
-        
-        let checkedBadge = '';
-        if (appMode === 'practice' && checkedQuestions[idx]) {
-          const isCorrect = userAnswers[idx] === q.answer;
-          checkedBadge = isCorrect 
-            ? `<span class="text-[9px] bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-1 py-0.2 rounded font-bold">정답</span>`
-            : `<span class="text-[9px] bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 px-1 py-0.2 rounded font-bold">오답</span>`;
-        }
-
+        row.className = `flex items-center justify-between p-1.5 rounded-xl border transition ${currentFocusIdx === idx ? 'bg-indigo-50/50 border-indigo-200' : 'bg-white dark:bg-slate-900'}`;
         row.innerHTML = `
           <div class="flex items-center gap-2">
-            <button onclick="jumpToQuestion(${idx})" class="w-6 h-6 flex items-center justify-center rounded-lg text-[11px] font-extrabold ${
-              currentFocusIdx === idx 
-                ? 'bg-indigo-600 text-white' 
-                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-slate-750'
-            } transition">
-              ${q.id}
-            </button>
-            <div class="flex items-center">${checkedBadge}</div>
+            <button onclick="jumpToQuestion(${idx})" class="w-6 h-6 flex items-center justify-center rounded-lg text-[11px] font-extrabold ${currentFocusIdx === idx ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-800'} transition">${q.id}</button>
           </div>
           <div class="flex gap-1 font-mono">
             ${[1, 2, 3, 4].map(num => `
-              <button onclick="selectOption(${idx}, ${num})" id="omr-bubble-${idx}-${num}" class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold border transition-all ${
-                userAnswers[idx] === num 
-                  ? 'bg-slate-800 dark:bg-slate-200 border-slate-800 dark:border-white text-white dark:text-slate-900 scale-110 shadow-md' 
-                  : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-750'
-              }">
-                ${num}
-              </button>
+              <button onclick="selectOption(${idx}, ${num})" class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold border transition-all ${userAnswers[idx] === num ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 shadow-md' : 'bg-white dark:bg-slate-800'}">${num}</button>
             `).join('')}
           </div>
         `;
@@ -802,537 +664,164 @@
     function buildNavigationGrid() {
       const container = document.getElementById('nav-badge-grid');
       container.innerHTML = '';
-
       questionsDatabase.forEach((q, idx) => {
         const isSolved = userAnswers[idx] !== null;
-        const isBookmarked = bookmarkedQuestions[idx];
+        if (currentFilter === 'unsolved' && isSolved) return;
+        if (currentFilter === 'flagged' && !bookmarkedQuestions[idx]) return;
 
-        let filterPass = true;
-        if (currentFilter === 'unsolved' && isSolved) filterPass = false;
-        if (currentFilter === 'flagged' && !isBookmarked) filterPass = false;
-
-        if (filterPass) {
-          const btn = document.createElement('button');
-          btn.id = `nav-grid-btn-${idx}`;
-          btn.onclick = () => jumpToQuestion(idx);
-          btn.className = getNavGridBtnClass(idx);
-          btn.textContent = q.id;
-          container.appendChild(btn);
+        const btn = document.createElement('button');
+        let baseClass = "h-8 rounded-lg text-xs font-bold border transition-all flex items-center justify-center ";
+        if (currentFocusIdx === idx) baseClass += "bg-indigo-600 text-white scale-105";
+        else if (bookmarkedQuestions[idx]) baseClass += "bg-amber-100 text-amber-800";
+        else if (isSolved) {
+           if (appMode === 'practice' && checkedQuestions[idx]) {
+             baseClass += userAnswers[idx] === q.answer ? "bg-emerald-50 text-emerald-800" : "bg-rose-50 text-rose-800";
+           } else baseClass += "bg-slate-200 dark:bg-slate-800";
         }
+        else baseClass += "bg-white dark:bg-slate-900";
+
+        btn.className = baseClass;
+        btn.textContent = q.id;
+        btn.onclick = () => jumpToQuestion(idx);
+        container.appendChild(btn);
       });
-    }
-
-    function getNavGridBtnClass(idx) {
-      let base = "h-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center border ";
-      
-      const isFocused = currentFocusIdx === idx;
-      const isSolved = userAnswers[idx] !== null;
-      const isBookmarked = bookmarkedQuestions[idx];
-
-      if (isFocused) {
-        base += "bg-indigo-600 border-indigo-600 text-white ring-2 ring-indigo-300 dark:ring-indigo-800 scale-105 ";
-      } else if (isBookmarked) {
-        base += "bg-amber-100 dark:bg-amber-950 border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-200 ";
-      } else if (isSolved) {
-        if (appMode === 'practice' && checkedQuestions[idx]) {
-          const correct = userAnswers[idx] === questionsDatabase[idx].answer;
-          base += correct 
-            ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-900 text-emerald-800 dark:text-emerald-400 hover:bg-emerald-100 "
-            : "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-900 text-rose-800 dark:text-rose-400 hover:bg-rose-100 ";
-        } else {
-          base += "bg-slate-200 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-300 ";
-        }
-      } else {
-        base += "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 ";
-      }
-
-      return base;
     }
 
     function renderActiveQuestion() {
       const viewport = document.getElementById('questions-viewport');
       viewport.innerHTML = '';
-
       if (questionsDatabase.length === 0) return;
 
       const q = questionsDatabase[currentFocusIdx];
-      const isBookmarked = bookmarkedQuestions[currentFocusIdx];
-      const isSolved = userAnswers[currentFocusIdx] !== null;
-      const selectedOption = userAnswers[currentFocusIdx];
-      const hasChecked = checkedQuestions[currentFocusIdx];
-
       const card = document.createElement('div');
-      card.className = "bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-850 p-5 sm:p-7 space-y-6 transition duration-150 shadow-sm";
+      card.className = "bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-850 p-5 sm:p-7 space-y-6 shadow-sm";
       
-      let categoryColor = "text-indigo-600 bg-indigo-50 border-indigo-100 dark:text-indigo-300 dark:bg-indigo-950/50 dark:border-indigo-900";
-      if (q.category === "승강기 기계 및 유압 제어") categoryColor = "text-emerald-600 bg-emerald-50 border-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/50 dark:border-emerald-900";
-      if (q.category === "기초전기공학 및 전자제어") categoryColor = "text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-300 dark:bg-amber-950/50 dark:border-amber-900";
-
       card.innerHTML = `
-        <div class="flex flex-wrap justify-between items-center gap-2 pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
-          <div class="flex items-center gap-2">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${categoryColor}">
-              ${q.category}
-            </span>
-            <span class="text-[10px] text-slate-400">문항 #${q.id}</span>
-          </div>
-          
-          <button onclick="toggleBookmark(${currentFocusIdx})" class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[10px] font-bold border ${
-            isBookmarked 
-              ? 'bg-amber-500 border-amber-500 text-white' 
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-50'
-          } transition">
-            <i class="fa-${isBookmarked ? 'solid' : 'regular'} fa-bookmark"></i>
-            <span>북마크</span>
-          </button>
+        <div class="flex justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800/80">
+          <div class="flex gap-2 items-center"><span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border text-indigo-600">${q.category}</span><span class="text-[10px] text-slate-400">문항 #${q.id}</span></div>
         </div>
-
-        <div class="space-y-3">
-          <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-relaxed">
-            <span class="text-indigo-600 dark:text-indigo-400 mr-1">Q${q.id}.</span> ${q.question}
-          </h3>
-        </div>
-
-        <div class="grid grid-cols-1 gap-2.5 pt-1">
-          ${q.options.map((option, oIdx) => {
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-relaxed"><span class="text-indigo-600 mr-1">Q${q.id}.</span> ${q.question}</h3>
+        <div class="grid gap-2.5">
+          ${q.options.map((opt, oIdx) => {
             const num = oIdx + 1;
-            
-            let btnStyle = "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300";
-            let indicatorStyle = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900 group-hover:text-indigo-600 dark:group-hover:text-indigo-400";
-            
-            if (selectedOption === num) {
-              btnStyle = "border-slate-800 dark:border-slate-200 bg-slate-850 dark:bg-slate-200 text-white dark:text-slate-900";
-              indicatorStyle = "bg-white/20 dark:bg-slate-800 text-white dark:text-white";
+            let style = "border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300";
+            if (userAnswers[currentFocusIdx] === num) style = "border-slate-800 bg-slate-850 text-white";
+            if (appMode === 'practice' && checkedQuestions[currentFocusIdx]) {
+              if (q.answer === num) style = "border-emerald-500 bg-emerald-50 text-emerald-900 font-bold";
+              else if (userAnswers[currentFocusIdx] === num) style = "border-rose-500 bg-rose-50 text-rose-900 font-bold";
             }
-
-            if (appMode === 'practice' && hasChecked) {
-              const isUserChoice = selectedOption === num;
-              const isCorrectAnswer = q.answer === num;
-
-              if (isCorrectAnswer) {
-                btnStyle = "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-300 font-bold";
-                indicatorStyle = "bg-emerald-500 text-white";
-              } else if (isUserChoice) {
-                btnStyle = "border-rose-500 bg-rose-50 dark:bg-rose-950/30 text-rose-900 dark:text-rose-300 font-bold";
-                indicatorStyle = "bg-rose-500 text-white";
-              } else {
-                btnStyle = "border-slate-100 dark:border-slate-900 bg-slate-50 dark:bg-slate-950 text-slate-400 opacity-50 pointer-events-none";
-                indicatorStyle = "bg-slate-200 dark:bg-slate-850 text-slate-400";
-              }
-            }
-
-            return `
-              <button onclick="selectOption(${currentFocusIdx}, ${num})" class="group flex items-center gap-3.5 p-3.5 rounded-2xl border text-left text-xs sm:text-sm transition-all duration-150 ${btnStyle}">
-                <span class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold transition-all ${indicatorStyle}">
-                  ${num}
-                </span>
-                <span class="flex-grow">${option}</span>
-              </button>
-            `;
+            return `<button onclick="selectOption(${currentFocusIdx}, ${num})" class="flex items-center gap-3.5 p-3.5 rounded-2xl border text-left text-sm ${style}"><span class="w-7 h-7 rounded-lg flex items-center justify-center font-bold bg-slate-100 text-slate-600">${num}</span><span>${opt}</span></button>`;
           }).join('')}
         </div>
       `;
 
-      if (appMode === 'practice') {
-        const feedbackBlock = document.createElement('div');
-        feedbackBlock.className = "pt-4 border-t border-slate-100 dark:border-slate-800/80";
-
-        if (isSolved && !hasChecked) {
-          feedbackBlock.innerHTML = `
-            <button onclick="revealPracticeAnswer(${currentFocusIdx})" class="w-full py-3 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 border border-emerald-200/50 dark:border-emerald-900/50 transition">
-              <i class="fa-regular fa-lightbulb"></i> 정답 채점 및 상세 설명 보기
-            </button>
-          `;
-        } else if (hasChecked) {
-          const isCorrect = selectedOption === q.answer;
-          feedbackBlock.innerHTML = `
-            <div class="p-4 rounded-2xl ${isCorrect ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50' : 'bg-rose-50/40 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/50'} space-y-3">
-              <div class="flex items-center gap-2">
-                <span class="flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ${isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
-                  <i class="fa-solid ${isCorrect ? 'fa-check' : 'fa-xmark'}"></i>
-                </span>
-                <h4 class="font-bold text-xs ${isCorrect ? 'text-emerald-900 dark:text-emerald-300' : 'text-rose-900 dark:text-rose-300'}">
-                  ${isCorrect ? '참 잘했습니다! 정답입니다.' : '틀렸습니다. 아래 해설을 분석하십시오.'}
-                </h4>
-              </div>
-              
-              <div class="h-px bg-slate-200/60 dark:bg-slate-800 my-1"></div>
-              
-              <div class="space-y-1.5">
-                <div class="text-[10px] font-bold text-slate-500 flex items-center gap-1.5">
-                  <i class="fa-solid fa-graduation-cap"></i> 기출문제 해설집 가이드
-                </div>
-                <div class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed prose dark:prose-invert max-w-none">
-                  ${q.explanation}
-                </div>
-              </div>
-            </div>
-          `;
-        } else {
-          feedbackBlock.innerHTML = `
-            <p class="text-center text-[11px] text-slate-400 py-2">
-              <i class="fa-solid fa-info-circle mr-1"></i> 문항 보기를 터치하면 정답을 체크해 볼 수 있는 버튼이 공개됩니다.
-            </p>
-          `;
-        }
-        card.appendChild(feedbackBlock);
+      if (appMode === 'practice' && userAnswers[currentFocusIdx] && !checkedQuestions[currentFocusIdx]) {
+        card.innerHTML += `<div class="pt-4 border-t border-slate-100"><button onclick="revealPracticeAnswer(${currentFocusIdx})" class="w-full py-3 bg-emerald-50 text-emerald-700 rounded-2xl text-xs font-bold">정답 확인</button></div>`;
+      } else if (appMode === 'practice' && checkedQuestions[currentFocusIdx]) {
+        card.innerHTML += `<div class="p-4 mt-4 rounded-2xl bg-slate-50 dark:bg-slate-800"><p class="text-xs">${q.explanation}</p></div>`;
       }
 
       viewport.appendChild(card);
-      
-      if (window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise();
-      }
-
       document.getElementById('current-focus-index').textContent = currentFocusIdx + 1;
-    }
 
-    function toggleBookmark(idx) {
-      bookmarkedQuestions[idx] = !bookmarkedQuestions[idx];
-      renderActiveQuestion();
-      buildNavigationGrid();
-      
-      if (currentFilter === 'flagged') {
-        filterQuestions('flagged');
+      // 수정된 렌더링 방식 (전체 페이지 렌더링 방지, 해당 엘리먼트 내에서만 실행)
+      if (window.MathJax && MathJax.typesetPromise) {
+        MathJax.typesetPromise([card]); 
       }
     }
 
     function selectOption(qIdx, optionNum) {
       if (appMode === 'practice' && checkedQuestions[qIdx]) return;
-
       userAnswers[qIdx] = optionNum;
-
-      buildOMRCard();
-      buildNavigationGrid();
-      renderActiveQuestion();
-      updateOMRProgress();
-      
-      const row = document.getElementById(`omr-row-${qIdx}`);
-      if (row) {
-        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      buildOMRCard(); buildNavigationGrid(); renderActiveQuestion(); updateOMRProgress();
     }
-
-    function revealPracticeAnswer(qIdx) {
-      checkedQuestions[qIdx] = true;
-      renderActiveQuestion();
-      buildOMRCard();
-      buildNavigationGrid();
-    }
-
-    function nextQuestion() {
-      if (currentFocusIdx < (questionsDatabase.length - 1)) {
-        currentFocusIdx++;
-        renderActiveQuestion();
-        buildNavigationGrid();
-      } else {
-        showCustomModal(
-          "fa-regular fa-circle-check",
-          "text-indigo-500 bg-indigo-50 dark:bg-indigo-950",
-          "마지막 문항 완료",
-          "모든 문항에 마킹이 누락되지 않았는지 최종 검증한 뒤 답안을 최종 제출하십시오.",
-          [{ text: "알겠습니다", style: "bg-slate-800 text-white" }]
-        );
-      }
-    }
-
-    function prevQuestion() {
-      if (currentFocusIdx > 0) {
-        currentFocusIdx--;
-        renderActiveQuestion();
-        buildNavigationGrid();
-      }
-    }
-
-    // Explicit coordinate jump
-    function jumpToQuestion(idx) {
-      currentFocusIdx = idx;
-      renderActiveQuestion();
-      buildNavigationGrid();
-      
-      const drawer = document.getElementById('omr-drawer');
-      if (drawer.classList.contains('omr-drawer-active')) {
-        toggleOMRDrawer();
-      }
-    }
-
+    function revealPracticeAnswer(qIdx) { checkedQuestions[qIdx] = true; renderActiveQuestion(); buildNavigationGrid(); }
+    function toggleBookmark(idx) { bookmarkedQuestions[idx] = !bookmarkedQuestions[idx]; renderActiveQuestion(); buildNavigationGrid(); }
+    function prevQuestion() { if (currentFocusIdx > 0) { currentFocusIdx--; renderActiveQuestion(); buildNavigationGrid(); } }
+    function nextQuestion() { if (currentFocusIdx < questionsDatabase.length - 1) { currentFocusIdx++; renderActiveQuestion(); buildNavigationGrid(); } }
+    function jumpToQuestion(idx) { currentFocusIdx = idx; renderActiveQuestion(); buildNavigationGrid(); }
+    function filterQuestions(type) { currentFilter = type; buildNavigationGrid(); }
     function updateOMRProgress() {
       const count = userAnswers.filter(ans => ans !== null).length;
-      const total = questionsDatabase.length;
-      document.getElementById('omr-progress').textContent = `${count} / ${total} 완료`;
-      document.getElementById('omr-floating-badge').textContent = count;
-    }
-
-    function filterQuestions(filterType) {
-      currentFilter = filterType;
-      
-      ['all', 'unsolved', 'flagged'].forEach(t => {
-        const btn = document.getElementById(`btn-filter-${t}`);
-        btn.className = "px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent";
-      });
-
-      const activeBtn = document.getElementById(`btn-filter-${filterType}`);
-      activeBtn.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800";
-
-      buildNavigationGrid();
+      document.getElementById('omr-progress').textContent = `${count} / ${questionsDatabase.length} 완료`;
     }
 
     function startExamTimer() {
-      examSecondsRemaining = 3600;
-      examSecondsElapsed = 0;
-      
-      const timerDisplay = document.getElementById('exam-timer');
-      
+      examSecondsRemaining = 3600; examSecondsElapsed = 0;
       examTimerInterval = setInterval(() => {
-        examSecondsRemaining--;
-        examSecondsElapsed++;
-
-        if (examSecondsRemaining <= 0) {
-          clearInterval(examTimerInterval);
-          showCustomModal(
-            "fa-solid fa-hourglass-end",
-            "text-rose-500 bg-rose-50 dark:bg-rose-950",
-            "평가 시간 만료",
-            "제한 시간 60분이 모두 소요되어 평가가 조기 종료 및 강제 제출됩니다.",
-            [{ text: "종합 결과 확인", style: "bg-rose-600 text-white", action: submitExam }]
-          );
-        } else {
-          const mins = Math.floor(examSecondsRemaining / 60);
-          const secs = examSecondsRemaining % 60;
-          timerDisplay.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-          
-          if (examSecondsRemaining <= 300) {
-            timerDisplay.classList.add('text-rose-500');
-            timerDisplay.classList.remove('text-white');
-          }
+        examSecondsRemaining--; examSecondsElapsed++;
+        if (examSecondsRemaining <= 0) submitExam();
+        else {
+          document.getElementById('exam-timer').textContent = `${Math.floor(examSecondsRemaining/60).toString().padStart(2,'0')}:${(examSecondsRemaining%60).toString().padStart(2,'0')}`;
         }
       }, 1000);
     }
 
     function confirmSubmitExam() {
-      const solvedCount = userAnswers.filter(ans => ans !== null).length;
-      const total = questionsDatabase.length;
-      const unsolvedCount = total - solvedCount;
-
-      let msg = `총 ${total}문항 중 ${solvedCount}문제를 마킹하셨고, ${unsolvedCount}문제가 공백 상태입니다. `;
-      if (unsolvedCount > 0) {
-        msg += "풀이하지 않은 미제출 카드는 오답으로 연쇄 산정됩니다. 정말 채점을 시작하겠습니다?";
-      } else {
-        msg += "모든 문항에 마킹 완료되었습니다. 즉시 성적 분석표를 생성할까요?";
-      }
-
-      showCustomModal(
-        "fa-regular fa-paper-plane",
-        "text-indigo-500 bg-indigo-50 dark:bg-indigo-950",
-        "답안 최종 검토 및 제출",
-        msg,
-        [
-          { text: "아니오 (검토)", style: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300" },
-          { text: "예 (제출)", style: "bg-indigo-600 text-white", action: submitExam }
-        ]
-      );
+      showCustomModal("fa-solid fa-paper-plane", "text-indigo-500", "답안 제출", "채점을 진행하시겠습니까?", [
+        { text: "취소", style: "bg-slate-100 dark:bg-slate-800" },
+        { text: "제출", style: "bg-indigo-600 text-white", action: submitExam }
+      ]);
     }
 
     function submitExam() {
-      if (examTimerInterval) {
-        clearInterval(examTimerInterval);
-      }
+      if (examTimerInterval) clearInterval(examTimerInterval);
+      
+      // 버그 수정: 실전 모드 제출 시점 모든 문항을 checked 처리하여 오답노트에서 정상 표기
+      checkedQuestions.fill(true); 
+      appMode = 'practice';
 
       let correctCount = 0;
-      let cat1Correct = 0, cat1Total = 0;
-      let cat2Correct = 0, cat2Total = 0;
-      let cat3Correct = 0, cat3Total = 0;
+      questionsDatabase.forEach((q, idx) => { if (userAnswers[idx] === q.answer) correctCount++; });
+      const score = Math.round((correctCount / questionsDatabase.length) * 100);
 
+      document.getElementById('result-score').textContent = `${score}점`;
+      document.getElementById('result-correct-count').textContent = correctCount;
+      document.getElementById('result-wrong-count').textContent = questionsDatabase.length - correctCount;
+      
+      const listContainer = document.getElementById('results-detailed-list');
+      listContainer.innerHTML = '';
       questionsDatabase.forEach((q, idx) => {
         const isCorrect = userAnswers[idx] === q.answer;
-        if (isCorrect) correctCount++;
-
-        if (q.category === "안전관리 및 재해예방") {
-          cat1Total++;
-          if (isCorrect) cat1Correct++;
-        } else if (q.category === "승강기 기계 및 유압 제어") {
-          cat2Total++;
-          if (isCorrect) cat2Correct++;
-        } else if (q.category === "기초전기공학 및 전자제어") {
-          cat3Total++;
-          if (isCorrect) cat3Correct++;
-        }
+        listContainer.innerHTML += `<div class="py-3 text-sm border-b dark:border-slate-800">Q${q.id}. ${q.question} - <span class="${isCorrect?'text-emerald-500':'text-rose-500'}">${isCorrect?'정답':'오답'}</span></div>`;
       });
+      if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([listContainer]);
 
-      const total = questionsDatabase.length;
-      const score = Math.round((correctCount / total) * 100);
-      const pass = score >= 60;
-
-      const scoreDisplay = document.getElementById('result-score');
-      scoreDisplay.textContent = `${score}점`;
-      
-      const badge = document.getElementById('result-status-badge');
-      if (pass) {
-        badge.textContent = "최종 합격 합격선 통과";
-        badge.className = "px-4 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-md";
-        scoreDisplay.className = "text-4xl font-black font-mono text-emerald-500";
-      } else {
-        badge.textContent = "불합격 기준 미달";
-        badge.className = "px-4 py-1 rounded-full text-[10px] font-bold bg-rose-500 text-white shadow-md";
-        scoreDisplay.className = "text-4xl font-black font-mono text-rose-500";
-      }
-
-      document.getElementById('result-correct-count').textContent = correctCount;
-      document.getElementById('result-wrong-count').textContent = total - correctCount;
-
-      const elapsedMins = Math.floor(examSecondsElapsed / 60);
-      const elapsedSecs = examSecondsElapsed % 60;
-      document.getElementById('result-elapsed-time').textContent = selectedStudyMode === 'exam' 
-        ? `${elapsedMins}분 ${elapsedSecs}초` 
-        : "연습 학습 종료";
-
-      const c1Pct = Math.round((cat1Correct / cat1Total) * 100) || 0;
-      const c2Pct = Math.round((cat2Correct / cat2Total) * 100) || 0;
-      const c3Pct = Math.round((cat3Correct / cat3Total) * 100) || 0;
-
-      document.getElementById('sec1-ratio').textContent = `${cat1Correct} / ${cat1Total} (${c1Pct}%)`;
-      document.getElementById('sec1-bar').style.width = `${c1Pct}%`;
-      
-      document.getElementById('sec2-ratio').textContent = `${cat2Correct} / ${cat2Total} (${c2Pct}%)`;
-      document.getElementById('sec2-bar').style.width = `${c2Pct}%`;
-
-      document.getElementById('sec3-ratio').textContent = `${cat3Correct} / ${cat3Total} (${c3Pct}%)`;
-      document.getElementById('sec3-bar').style.width = `${c3Pct}%`;
-
-      buildDetailedDiagnosticView();
-
-      // UI swap
       document.getElementById('cbt-workspace').classList.add('hidden');
       document.getElementById('omr-floating-trigger').classList.add('hidden');
       document.getElementById('results-view').classList.remove('hidden');
-      document.getElementById('top-status-bar').classList.add('hidden');
-
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function buildDetailedDiagnosticView() {
-      const container = document.getElementById('results-detailed-list');
-      container.innerHTML = '';
-
-      questionsDatabase.forEach((q, idx) => {
-        const isCorrect = userAnswers[idx] === q.answer;
-        const div = document.createElement('div');
-        div.className = `py-4 ${isCorrect ? 'bg-emerald-500/5' : 'bg-rose-500/5'} rounded-2xl px-4 my-2`;
-
-        div.innerHTML = `
-          <div class="flex items-start gap-3 text-left">
-            <span class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ${isCorrect ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}">
-              ${q.id}
-            </span>
-            <div class="space-y-2 flex-grow">
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="text-[10px] font-semibold text-slate-400">${q.category}</span>
-                <span class="text-[9px] ${isCorrect ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-400' : 'bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-400'} px-2 py-0.2 rounded font-extrabold uppercase">
-                  ${isCorrect ? '정답' : '오답'}
-                </span>
-              </div>
-              <p class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">${q.question}</p>
-              
-              <div class="text-[11px] sm:text-xs space-y-1 bg-white/60 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                <p>• 나의 선택 답안: <span class="${isCorrect ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}">${userAnswers[idx] ? userAnswers[idx] + '. ' + q.options[userAnswers[idx]-1] : '공백'}</span></p>
-                <p>• 공식 정답지: <span class="text-slate-700 dark:text-slate-300 font-bold">${q.answer}. ${q.options[q.answer-1]}</span></p>
-                <div class="h-px bg-slate-200/50 dark:bg-slate-800 my-1.5"></div>
-                <div class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 leading-relaxed">
-                  <strong>기출 해설:</strong> ${q.explanation}
-                </div>
-              </div>
-            </div>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-
-      if (window.MathJax && MathJax.typesetPromise) {
-        MathJax.typesetPromise();
-      }
     }
 
     function exportUnsolved() {
-      const incorrectIdxs = [];
-      questionsDatabase.forEach((q, idx) => {
-        if (userAnswers[idx] !== q.answer) {
-          incorrectIdxs.push(idx);
-        }
-      });
-
-      if (incorrectIdxs.length === 0) {
-        showCustomModal(
-          "fa-regular fa-face-smile-beam",
-          "text-emerald-500 bg-emerald-50 dark:bg-emerald-950",
-          "오답 무결성!",
-          "틀린 문제가 없습니다. 완벽하게 합격선을 통과하셨습니다.",
-          [{ text: "종료하기", style: "bg-slate-800 text-white" }]
-        );
-        return;
-      }
-
       document.getElementById('results-view').classList.add('hidden');
       document.getElementById('cbt-workspace').classList.remove('hidden');
-      document.getElementById('top-status-bar').classList.remove('hidden');
-      document.getElementById('omr-floating-trigger').classList.remove('hidden');
-
-      currentFocusIdx = incorrectIdxs[0];
-      appMode = 'practice';
-      checkedQuestions = Array(questionsDatabase.length).fill(true);
-
-      buildOMRCard();
-      buildNavigationGrid();
-      renderActiveQuestion();
+      currentFocusIdx = questionsDatabase.findIndex((q, i) => userAnswers[i] !== q.answer) || 0;
+      buildNavigationGrid(); renderActiveQuestion();
     }
 
     function resetApp() {
-      // Clear data states
-      questionsDatabase = [];
-      userAnswers = [];
-      bookmarkedQuestions = [];
-      checkedQuestions = [];
-      currentFocusIdx = 0;
-      currentFilter = 'all';
-
-      if (examTimerInterval) {
-        clearInterval(examTimerInterval);
-      }
-
-      // Reset titles
-      document.getElementById('loaded-exam-title').textContent = "원하시는 시험 회차를 아래에서 선택하세요.";
-
+      questionsDatabase = []; userAnswers = []; bookmarkedQuestions = []; checkedQuestions = [];
+      if (examTimerInterval) clearInterval(examTimerInterval);
       document.getElementById('results-view').classList.add('hidden');
       document.getElementById('cbt-workspace').classList.add('hidden');
-      document.getElementById('omr-floating-trigger').classList.add('hidden');
-      document.getElementById('top-status-bar').classList.add('hidden');
       document.getElementById('mode-selection-view').classList.remove('hidden');
     }
 
     function showCustomModal(iconClass, bgClass, title, msg, buttons = []) {
       const container = document.getElementById('custom-modal');
-      const iconWrap = document.getElementById('modal-icon-container');
-      const titleWrap = document.getElementById('modal-title');
-      const msgWrap = document.getElementById('modal-message');
+      document.getElementById('modal-icon-container').innerHTML = `<i class="${iconClass} ${bgClass}"></i>`;
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').innerHTML = msg;
+      
       const btnGroup = document.getElementById('modal-buttons-container');
-
-      iconWrap.className = `w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl mb-3 ${bgClass}`;
-      iconWrap.innerHTML = `<i class="${iconClass}"></i>`;
-
-      titleWrap.textContent = title;
-      msgWrap.innerHTML = msg;
-
       btnGroup.innerHTML = '';
       buttons.forEach(b => {
         const btn = document.createElement('button');
-        btn.className = `flex-1 py-2 rounded-xl text-xs font-semibold transition ${b.style}`;
+        btn.className = `flex-1 py-2 rounded-xl text-xs font-semibold ${b.style}`;
         btn.textContent = b.text;
-        btn.onclick = () => {
-          container.classList.add('hidden');
-          if (b.action) b.action();
-        };
+        btn.onclick = () => { container.classList.add('hidden'); if(b.action) b.action(); };
         btnGroup.appendChild(btn);
       });
-
       container.classList.remove('hidden');
     }
   </script>
