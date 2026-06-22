@@ -208,8 +208,9 @@
             </button>
           </div>
           <div class="relative">
+            <!-- onchange에서 updateSelectedRoundKey(this.value)를 구동하여 변수 변경사항을 완벽히 동기화 -->
             <select id="exam-round-select" onchange="updateSelectedRoundKey(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-850 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none transition-colors">
-              <!-- Dynamically populated -->
+              <!-- Dynamically populated from list.json -->
             </select>
             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
               <i class="fa-solid fa-chevron-down text-xs"></i>
@@ -452,7 +453,7 @@
       <!-- Detailed list -->
       <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-55 dark:bg-slate-900/60 flex justify-between items-center">
-          <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">정밀 오답 분석 및 상세 진단</h3>
+          <h3 class="text-sm sm:text-base font-bold text-slate-850 dark:text-slate-200">정밀 오답 분석 및 상세 진단</h3>
           <div class="flex gap-2">
             <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>정답
@@ -627,6 +628,7 @@
           const opt = document.createElement('option');
           opt.value = key;
           opt.textContent = data[key];
+          
           // 첫 번째 아이템 기본 선택 처리
           if (index === 0) {
             opt.selected = true;
@@ -659,7 +661,7 @@
 
     // Dynamic Database Loading (Pure fetch-only mechanism)
     async function loadAndStartExam() {
-      // 시작 직전, 엘리먼트의 최종 선택 값을 강제로 직접 추출하여 변수에 바인딩 (인식 오류 완전 제거)
+      // [핵심 조치] 시작 직전, 엘리먼트의 최종 선택 값을 강제로 직접 추출하여 변수에 완전 바인딩시킵니다.
       const selectBox = document.getElementById('exam-round-select');
       if (selectBox && selectBox.value) {
         selectedRoundKey = selectBox.value;
@@ -670,7 +672,7 @@
           "fa-solid fa-file-circle-exclamation",
           "text-amber-500 bg-amber-50 dark:bg-amber-950/30",
           "선택된 회차 없음",
-          "기출 회차가 존재하지 않거나 로딩되지 않았습니다. data/list.json 파일 형식을 점검하십시오.",
+          "기출 회차가 존재하지 않거나 로딩되지 않았습니다. data/list.json 파일 및 파일 배치 규칙을 확인하십시오.",
           [{ text: "알겠습니다", style: "bg-slate-800 text-white" }]
         );
         return;
@@ -685,8 +687,9 @@
       startBtn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> <span>기출 데이터 동적 수신 중...</span>';
 
       try {
+        // [순수 연동] 사용자가 고른 고유 키값(예: 2025_02)에 상응하는 개별 회차 .json 파일을 긁어옵니다.
         const response = await fetch(`./data/${selectedRoundKey}.json`);
-        if (!response.ok) throw new Error("JSON 수신 실패");
+        if (!response.ok) throw new Error("JSON 파일 수신 에러");
         
         questionsDatabase = await response.json();
 
@@ -714,7 +717,7 @@
           "fa-solid fa-triangle-exclamation",
           "text-rose-500 bg-rose-50 dark:bg-rose-950/30",
           "기출문제 파일 로드 에러",
-          `현재 회차(<b>data/${selectedRoundKey}.json</b>) 데이터 파일을 호출할 수 없습니다.<br><br>올바른 디렉토리에 규격화된 기출 데이터 세트가 배치되어 있는지 점검해 주십시오.`,
+          `선택한 회차(<b>data/${selectedRoundKey}.json</b>) 데이터 파일을 로드할 수 없습니다.<br><br>해당 경로에 실제 JSON 파일이 정상적으로 저장되어 있는지 다시 한번 점검해 주십시오.`,
           [{ text: "확인", style: "bg-slate-800 text-white" }]
         );
       } finally {
@@ -996,11 +999,11 @@
           ${q.options.map((option, oIdx) => {
             const num = oIdx + 1;
             
-            // 기본 비활성 스타일
+            // 기본 상태 스타일
             let btnStyle = "border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300";
             let indicatorStyle = "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:bg-brand-100 dark:group-hover:bg-slate-800 group-hover:text-brand-600 dark:group-hover:text-brand-400";
             
-            // 마킹 선택 상태에서 다크/라이트 가독성 완벽 개선
+            // 마킹 선택 시, 명도가 확실하고 가독성 높은 흰색 텍스트 테마 적용
             if (selectedOption === num) {
               btnStyle = "border-brand-600 dark:border-brand-500 bg-brand-600 dark:bg-brand-500 text-white dark:text-white shadow-md font-semibold";
               indicatorStyle = "bg-white/20 dark:bg-white/20 text-white dark:text-white";
@@ -1230,7 +1233,7 @@
         "답안 최종 검토 및 제출",
         msg,
         [
-          { text: "아니오 (검토)", style: "bg-slate-100 dark:bg-slate-800 text-slate-750 dark:text-slate-350" },
+          { text: "아니오 (검토)", style: "bg-slate-100 dark:bg-slate-800 text-slate-755 dark:text-slate-350" },
           { text: "예 (제출)", style: "bg-brand-600 text-white", action: submitExam }
         ]
       );
