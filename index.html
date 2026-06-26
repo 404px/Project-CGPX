@@ -225,7 +225,7 @@
                 </div>
             </div>
 
-            <button id="start-exam-button" onclick="loadAndStartExam()" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-[0.99]">
+            <button id="start-exam-button" onclick="loadAndStartExam()" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-[0.995]">
                 <i class="fa-solid fa-play"></i><span>선택한 자격증 모의고사 시작</span>
             </button>
         </div>
@@ -432,8 +432,8 @@
     let selectedStudyMode = 'practice'; 
 
     let questionsDatabase = [];
-    let userAnswers = []; // 사용자가 입력한 정답 목록
-    let bookmarkedQuestions = []; // 북마크 상태 관리 배열
+    let userAnswers = []; 
+    let bookmarkedQuestions = []; 
     let currentFilter = 'all';
     let currentFocusIdx = 0;
 
@@ -451,7 +451,6 @@
         if (!rawText) return "";
         let processed = rawText;
         processed = processed.replace(/\r\n/g, "\n");
-        // 이스케이프 유실 문자 처리 가드
         processed = processed.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
         return processed;
     }
@@ -472,15 +471,15 @@
         refreshExamRounds();
     }
 
-    // 2. list.json 비동기 패치 및 데이터 가공 연동
+    // 2. list.json 비동기 패치 및 데이터 가공 연동 (GitHub Pages 상대경로 가드 명시)
     function refreshExamRounds() {
         const selectEl = document.getElementById('exam-round-select');
         if (!selectEl) return;
         selectEl.innerHTML = '<option value="">회차 데이터를 불러오는 중...</option>';
 
-        fetch('list.json')
+        fetch('./list.json')
             .then(res => {
-                if (!res.ok) throw new Error('CORS 또는 네트워크 파일 로드 실패');
+                if (!res.ok) throw new Error('404 Not Found 또는 CORS 네트워크 에러');
                 return res.json();
             })
             .then(data => {
@@ -504,7 +503,7 @@
             })
             .catch(err => {
                 console.error(err);
-                selectEl.innerHTML = '<option value="">오류: Live Server 환경 및 list.json 경로를 확인하세요.</option>';
+                selectEl.innerHTML = '<option value="">오류: 파일명 대소문자 및 ./list.json 업로드 상태를 확인하세요.</option>';
             });
     }
 
@@ -527,14 +526,14 @@
         }
     }
 
-    // 4. 기출 세부 문항 JSON 로딩 및 워크스페이스 기동 처리
+    // 4. 기출 세부 문항 JSON 로딩 및 워크스페이스 기동 처리 (GitHub Pages 상대경로 가드 명시)
     function loadAndStartExam() {
         if (!selectedRoundKey) {
             showCustomModal('fa-triangle-exclamation', 'bg-amber-100 text-amber-600', '선택 유효성 확인', '시작할 기출 시험 회차가 선택되지 않았습니다.');
             return;
         }
 
-        const jsonPath = `${selectedRoundKey}.json`;
+        const jsonPath = `./${selectedRoundKey}.json`;
         fetch(jsonPath)
             .then(res => {
                 if (!res.ok) throw new Error(`${jsonPath} 기출 본문 파일을 찾을 수 없습니다.`);
@@ -683,7 +682,7 @@
         renderFocusedQuestion();
     }
 
-    // 7. 문제 단일 화면 렌더러 (중요)
+    // 7. 문제 단일 화면 렌더러
     function renderFocusedQuestion() {
         const container = document.getElementById('questions-viewport');
         container.innerHTML = '';
@@ -700,7 +699,7 @@
 
         const qData = questionsDatabase[globalIdx];
         const card = document.createElement('div');
-        card.className = "space-y-5 animate-fade-in";
+        card.className = "space-y-5";
 
         // 문제 헤더바
         const header = document.createElement('div');
@@ -802,7 +801,6 @@
         userAnswers[globalIdx] = optionNum;
         renderFocusedQuestion();
         
-        // 연습모드가 아니고 실전 모드면 마킹 후 자동으로 1초 뒤 다음 문제 이동 처리 옵션 가능
         const omrRow = document.getElementById(`omr-row-${globalIdx}`);
         if (omrRow) {
             const bubbles = omrRow.querySelectorAll('.omr-bubble');
@@ -867,7 +865,6 @@
                 
                 bubble.onclick = () => {
                     selectAnswerOption(i, bNum);
-                    // 활성화 포커싱 맞춰주기
                     const indices = getFilteredIndices();
                     const localLoc = indices.indexOf(i);
                     if (localLoc !== -1) {
@@ -934,11 +931,9 @@
     function scoreExamSubmission() {
         if (examTimerInterval) clearInterval(examTimerInterval);
 
-        // 분석을 위한 변수군
         let correctCount = 0;
         const total = questionsDatabase.length;
         
-        // 과목별 점수 데이터 처리를 위한 매핑 빌드 구조 (20개씩 끊김 가정 혹은 과목별 매핑 필드 연동)
         const subMap = {
             1: { c: 0, t: 0 },
             2: { c: 0, t: 0 },
@@ -959,10 +954,8 @@
             }
         });
 
-        // 100점 만점 환산 점수
         const finalScore = Math.round((correctCount / total) * 100);
         
-        // UI 반영
         document.getElementById('result-score').textContent = `${finalScore}점`;
         document.getElementById('result-correct-count').textContent = correctCount.toString();
         document.getElementById('results-total-count').textContent = total.toString();
@@ -972,10 +965,9 @@
         const secTime = examSecondsElapsed % 60;
         document.getElementById('result-elapsed-time').textContent = selectedStudyMode === 'exam' ? `${minTime}분 ${secTime}초` : '연습 모드는 무제한';
 
-        // 합격 유무 검증 로직
         const badge = document.getElementById('result-status-badge');
         let isPass = finalScore >= 60;
-        let isGw拉克 = false; // 과락 여부 (40점 미만 과목 체크)
+        let isGw拉克 = false; 
 
         Object.keys(subMap).forEach(k => {
             const ratio = subMap[k].c / subMap[k].t;
@@ -993,7 +985,6 @@
             badge.className = "px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500 text-white inline-block";
         }
 
-        // 과목 스탯 카드 드로잉 레이아웃 바인딩
         const conf = subjectConfig[activeLicense] || {};
         for (let idx = 1; idx <= 3; idx++) {
             const dataObj = subMap[idx] || { c: 0, t: 0 };
@@ -1005,7 +996,6 @@
             document.getElementById(`sec${idx}-bar`).style.width = `${percent}%`;
         }
 
-        // 하단 디테일 리스트 오답노트 렌더링
         const detailContainer = document.getElementById('results-detailed-list');
         detailContainer.innerHTML = '';
 
@@ -1038,7 +1028,6 @@
             detailContainer.appendChild(dRow);
         });
 
-        // 뷰 전환
         document.getElementById('cbt-workspace').classList.add('hidden');
         document.getElementById('omr-floating-trigger').classList.add('hidden');
         document.getElementById('results-view').classList.remove('hidden');
@@ -1062,7 +1051,6 @@
             return;
         }
 
-        // 전체 데이터를 오답 배열 데이터베이스로 리빌드 후 연습모드로 기동 강제 변조
         const rebuiltDb = wrongIndices.map(idx => questionsDatabase[idx]);
         questionsDatabase = rebuiltDb;
         userAnswers = new Array(questionsDatabase.length).fill(0);
@@ -1089,14 +1077,13 @@
     function handleSwipeGesture() {
         const threshold = 60;
         if (touchStartX - touchEndX > threshold) {
-            nextQuestion(); // 왼쪽으로 밀면 다음 문제
+            nextQuestion(); 
         } else if (touchEndX - touchStartX > threshold) {
-            prevQuestion(); // 오른쪽으로 밀면 이전 문제
+            prevQuestion(); 
         }
     }
 
     function handleKeyboardShortcuts(e) {
-        // 입력창 활성화 시 무시 가드
         if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
         const indices = getFilteredIndices();
@@ -1115,7 +1102,6 @@
             applyFilterAndRefreshNavigator();
         } else if (e.key === 'Enter') {
             if (selectedStudyMode === 'practice') {
-                // 연습모드 가이드 갱신 리프레시 용도
                 renderFocusedQuestion();
             }
         }
@@ -1166,7 +1152,6 @@
         document.getElementById('theme-dropdown').classList.add('hidden');
     }
 
-    // 윈도우 클릭 드롭다운 자동 닫기 디바운스 바인딩
     window.addEventListener('click', (e) => {
         const container = document.getElementById('theme-selector-container');
         if (container && !container.contains(e.target)) {
