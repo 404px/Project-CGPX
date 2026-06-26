@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT 국가기술자격 통합 모의고사 시스템</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    screens: {
+                        'xs': '400px',
+                        '3xl': '1600px'
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f4ff',
+                            100: '#e1e9fe',
+                            200: '#c8d7fd',
+                            300: '#a1bdfa',
+                            400: '#7299f7',
+                            500: '#4871f1',
+                            600: '#3151e6',
+                            700: '#253dcf',
+                            800: '#2334a8',
+                            900: '#223086',
+                            950: '#141b4f',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            chtml: {
+                displayAlign: 'left'
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+
+        body {
+            font-family: 'Pretendard', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .html.dark .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .html.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark mjx-container {
+            color: #f1f5f9 !important;
+        }
+
+        .omr-drawer-active {
+            transform: translateX(0) !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+
+<script>
+    function applySystemTheme() {
+        const userTheme = localStorage.getItem('cbt-theme') || 'system';
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (userTheme === 'dark' || (userTheme === 'system' && systemPrefersDark)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+    applySystemTheme();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (!localStorage.getItem('cbt-theme') || localStorage.getItem('cbt-theme') === 'system') {
+            applySystemTheme();
+        }
+    });
+</script>
+
+<header class="bg-brand-600 dark:bg-slate-900 text-white shadow-md py-4 px-4 sm:px-6 sticky top-0 z-40 transition-colors">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="flex items-center gap-3 w-full md:w-auto">
+            <div class="bg-white/10 dark:bg-white/5 p-2.5 rounded-2xl border border-white/20">
+                <i class="fa-solid fa-graduation-cap text-2xl text-yellow-300"></i>
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold tracking-tight">CBT 국가기술자격 라이브 모의고사</h1>
+                <p id="loaded-exam-title" class="text-[11px] text-brand-200 dark:text-slate-400">자격증 종류를 선택하고 실력을 점검하세요.</p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto border-t border-brand-500/30 md:border-0 pt-3 md:pt-0">
+            <div class="relative inline-block text-left" id="theme-selector-container">
+                <button onclick="toggleThemeDropdown()" class="flex items-center gap-2 px-3 py-1.5 bg-brand-700 dark:bg-slate-800 border border-brand-500/30 dark:border-slate-700 rounded-xl text-xs font-semibold hover:bg-brand-800 transition">
+                    <i class="fa-solid fa-circle-half-stroke text-yellow-300" id="current-theme-icon"></i>
+                    <span id="theme-btn-label">테마 설정</span>
+                </button>
+
+                <div id="theme-dropdown" class="hidden absolute right-0 mt-2 w-36 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden text-slate-700 dark:text-slate-300">
+                    <button onclick="changeTheme('system')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-laptop text-slate-400"></i> 기기 설정 연동
+                    </button>
+                    <button onclick="changeTheme('light')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-sun text-amber-500"></i> 라이트 모드
+                    </button>
+                    <button onclick="changeTheme('dark')" class="w-full text-left px-4 py-2 text-xs hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-moon text-blue-400"></i> 다크 모드
+                    </button>
+                </div>
+            </div>
+
+            <div id="top-status-bar" class="hidden flex items-center gap-3 bg-brand-700/50 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-brand-500/30 dark:border-slate-700">
+                <span id="active-mode-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400 text-slate-900">대기</span>
+                <div id="exam-timer-wrapper" class="hidden flex items-center gap-1.5 border-l border-brand-500/50 dark:border-slate-700 pl-2.5">
+                    <i class="fa-regular fa-clock text-yellow-300 animate-pulse text-sm"></i>
+                    <span id="exam-timer" class="font-mono font-bold text-sm text-white">60:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="hidden md:block bg-brand-50 dark:bg-slate-900 border-b border-brand-100 dark:border-slate-800 text-brand-800 dark:text-slate-300 text-xs py-1.5 px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <span>💡 데스크톱 단축키: <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">1</kbd>~<kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">4</kbd> 보기 마킹 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">←</kbd> <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">→</kbd> 문항이동 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">B</kbd> 북마크 | <kbd class="px-1.5 py-0.5 bg-white dark:bg-slate-800 border rounded shadow-sm text-[10px]">Enter</kbd> 연습정답확인</span>
+        <span class="opacity-85">모바일 기기는 좌우 스와이프로 편리하게 문항 전환이 가능합니다.</span>
+    </div>
+</div>
+
+<main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center relative">
+
+    <div id="mode-selection-view" class="w-full max-w-2xl mx-auto py-6 sm:py-10 px-4 flex flex-col justify-center items-center">
+        <div class="text-center mb-8">
+            <span class="px-3 py-1 bg-brand-100 dark:bg-brand-950/50 text-brand-700 dark:text-brand-300 rounded-full text-[11px] font-extrabold mb-3 inline-block tracking-wider uppercase">CBT Multi-Platform Engine v3</span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">CBT 국가기술자격 평가 시스템</h2>
+            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">자격을 선택하고 실전 학습 모의고사를 시작하세요.</p>
+        </div>
+
+        <div class="w-full grid grid-cols-3 gap-1.5 p-1.5 bg-slate-200/70 dark:bg-slate-900 rounded-2xl mb-5 border border-slate-200 dark:border-slate-800">
+            <button id="tab-btn-elevator" onclick="switchLicenseCategory('elevator')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 bg-white dark:bg-slate-800 text-brand-600 dark:text-white shadow-md">
+                <i class="fa-solid fa-elevator text-sm"></i><span>승강기기능사</span>
+            </button>
+            <button id="tab-btn-railway" onclick="switchLicenseCategory('railway')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                <i class="fa-solid fa-train text-sm"></i><span>철도전기신호</span>
+            </button>
+            <button id="tab-btn-com" onclick="switchLicenseCategory('com')" class="py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+                <i class="fa-solid fa-desktop text-sm"></i><span>컴활 1급</span>
+            </button>
+        </div>
+
+        <div class="w-full bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xl space-y-6">
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">1단계: 시험 기출회차 선택</label>
+                    <button onclick="refreshExamRounds()" class="text-[10px] text-brand-500 hover:underline flex items-center gap-1 font-bold">
+                        <i class="fa-solid fa-arrows-rotate"></i> 회차 동기화
+                    </button>
+                </div>
+                <div class="relative">
+                    <select id="exam-round-select" onchange="updateSelectedRoundKey(this.value)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-500 appearance-none transition-colors">
+                        </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="block text-xs font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">2단계: 학습 모드 선택</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <button onclick="setStudyMode('practice')" id="mode-btn-practice" class="group flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-500 bg-brand-50/20 dark:bg-brand-950/10 text-left transition-all">
+                        <div class="w-8.5 h-8.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0 font-bold p-2">
+                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200">연습 모드 (학습형)</h4>
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">보기를 터치하는 즉시 상세 오답 해설과 실제 공식 정답이 출력됩니다.</p>
+                        </div>
+                    </button>
+
+                    <button onclick="setStudyMode('exam')" id="mode-btn-exam" class="group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-brand-300 text-left transition-all">
+                        <div class="w-8.5 h-8.5 rounded-xl bg-brand-100 dark:bg-brand-950/30 flex items-center justify-center text-brand-600 dark:text-brand-400 flex-shrink-0 p-2">
+                            <i class="fa-regular fa-file-lines text-sm"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200">실전 모드 (시험형)</h4>
+                            <p class="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-normal">실제와 동일하게 60분 제한시간 타이머 작동 및 마킹 후 결과를 채점합니다.</p>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <button id="start-exam-button" onclick="loadAndStartExam()" class="w-full py-4 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg transition-all transform active:scale-[0.99]">
+                <i class="fa-solid fa-play"></i><span>선택한 자격증 모의고사 시작</span>
+            </button>
+        </div>
+
+        <div class="mt-8 text-center text-slate-400 dark:text-slate-500 text-[11px] space-y-1">
+            <p>• 과락 없이 총 평균 점수 60점 이상 획득 시 합격선 통과로 자동 판정됩니다.</p>
+            <p>• 수식 기호가 적용된 문항은 실시간 LaTeX 컴파일러를 통해 완벽하게 표현됩니다.</p>
+        </div>
+    </div>
+
+    <div id="cbt-workspace" class="hidden w-full flex flex-col lg:flex-row gap-6">
+        <div class="w-full lg:w-3/4 flex flex-col gap-5">
+            <div class="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-850 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors">
+                <div class="flex flex-wrap gap-1.5 items-center w-full sm:w-auto">
+                    <button onclick="filterQuestions('all')" id="btn-filter-all" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-900">전체보기 (<span id="btn-filter-all-count">0</span>)</button>
+                    <button onclick="filterQuestions('unsolved')" id="btn-filter-unsolved" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">미푼 문항</button>
+                    <button onclick="filterQuestions('flagged')" id="btn-filter-flagged" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                        <i class="fa-solid fa-bookmark text-amber-500"></i>북마크됨
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <button onclick="prevQuestion()" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-chevron-left"></i> 이전
+                    </button>
+                    <span class="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 px-3.5 py-2.5 bg-slate-100/60 dark:bg-slate-800/50 rounded-xl">
+                        문항 <strong id="current-focus-index" class="text-brand-600 dark:text-brand-400 font-mono">1</strong> / <span id="workspace-total-count">0</span>
+                    </span>
+                    <button onclick="nextQuestion()" class="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition text-xs font-bold flex items-center gap-1">
+                        다음 <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="swipe-viewport" class="relative bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+                <div id="questions-viewport" class="space-y-6"></div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-colors">
+                <h4 class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 mb-3.5 flex items-center justify-between">
+                    <span>빠른 문항 네비게이터</span>
+                    <span class="text-[10px] font-normal text-slate-400">번호를 클릭하면 즉시 이동합니다.</span>
+                </h4>
+                <div class="grid grid-cols-5 xs:grid-cols-6 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-10 gap-1.5" id="nav-badge-grid"></div>
+            </div>
+        </div>
+
+        <div id="omr-drawer" class="fixed lg:static inset-y-0 right-0 w-[280px] sm:w-[320px] lg:w-1/4 bg-white dark:bg-slate-900 border-l lg:border border-slate-200 dark:border-slate-800 shadow-2xl lg:shadow-md z-45 transform translate-x-full lg:translate-x-0 transition-transform duration-300 rounded-l-2xl lg:rounded-2xl overflow-hidden flex flex-col h-full lg:h-[calc(100vh-140px)] lg:sticky lg:top-24">
+            <div class="p-4 bg-slate-800 dark:bg-slate-950 text-white flex justify-between items-center flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-border-all text-yellow-400"></i>
+                    <span class="font-bold text-xs tracking-wide">OMR 마킹 카드</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="omr-progress" class="text-[10px] bg-slate-700 text-slate-200 px-2 py-0.5 rounded-md font-semibold">0 / 0 마킹</span>
+                    <button onclick="toggleOMRDrawer()" class="lg:hidden p-1 text-slate-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-grow p-3 sm:p-4 overflow-y-auto custom-scrollbar space-y-2 bg-slate-50 dark:bg-slate-950" id="omr-card-list"></div>
+            <div class="p-4 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800/80 flex flex-col gap-2 flex-shrink-0">
+                <button id="submit-exam-btn" onclick="confirmSubmitExam()" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition">
+                    <i class="fa-solid fa-circle-check"></i><span>답안지 제출 및 채점 결과 보기</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button id="omr-floating-trigger" onclick="toggleOMRDrawer()" class="hidden fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-brand-600 text-white rounded-full shadow-2xl z-30 flex items-center justify-center hover:bg-brand-700 transition transform active:scale-95 border border-brand-500">
+        <i class="fa-solid fa-clipboard-list text-xl"></i>
+        <span class="absolute -top-1 -right-1 bg-rose-500 text-white font-bold font-mono text-[9px] w-5 h-5 rounded-full flex items-center justify-center border border-white" id="omr-floating-badge">0</span>
+    </button>
+    <div id="omr-backdrop" onclick="toggleOMRDrawer()" class="hidden fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"></div>
+
+    <div id="results-view" class="hidden w-full max-w-4xl mx-auto py-4 space-y-6">
+        <div class="bg-gradient-to-br from-brand-900 to-slate-900 dark:from-slate-900 dark:to-brand-950 rounded-3xl text-white p-6 sm:p-8 shadow-xl relative overflow-hidden">
+            <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-brand-700/20 rounded-full blur-2xl"></div>
+            <div class="absolute -left-12 -top-12 w-64 h-64 bg-purple-700/10 rounded-full blur-2xl"></div>
+            <div class="relative flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="text-center md:text-left space-y-3">
+                    <span id="result-status-badge" class="px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white inline-block">합격 유무 판독 중</span>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">CBT 평가 성적 리포트</h2>
+                    <p class="text-slate-300 text-xs sm:text-sm max-w-md leading-relaxed">이번 모의고사 채점 결과입니다. 세부 과목 성적 분석을 확인하세요.</p>
+                </div>
+                <div class="flex items-center justify-center gap-5 bg-white/5 border border-white/10 p-5 rounded-2xl backdrop-blur-sm w-full md:w-auto">
+                    <div class="text-center">
+                        <p class="text-[9px] text-slate-400 uppercase tracking-widest font-semibold mb-1">나의 득점 점수</p>
+                        <div class="text-4xl font-black font-mono text-yellow-300" id="result-score">0점</div>
+                    </div>
+                    <div class="h-10 w-px bg-white/20"></div>
+                    <div class="text-slate-300 text-[11px] space-y-1 text-left">
+                        <p>• 정답 문항수: <span class="font-bold text-emerald-400 font-mono" id="result-correct-count">0</span> / <span id="results-total-count">0</span></p>
+                        <p>• 오답 문항수: <span class="font-bold text-rose-400 font-mono" id="result-wrong-count">0</span></p>
+                        <p>• 누적소요시간: <span class="font-bold text-white font-mono" id="result-elapsed-time">0분 0초</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 transition-colors">
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
+                <i class="fa-solid fa-clipboard-list text-brand-500 mr-1.5"></i> 오답 훈련 기능을 통해 틀린 문항을 복습할 수 있습니다.
+            </p>
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="resetApp()" class="flex-1 sm:flex-initial px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition">
+                    <i class="fa-solid fa-arrows-rotate mr-1.5"></i> 메인 화면으로
+                </button>
+                <button onclick="startWrongAnswersTraining()" class="flex-1 sm:flex-initial px-4 py-2.5 bg-brand-50 dark:bg-brand-950 hover:bg-indigo-100 dark:hover:bg-brand-900 text-brand-700 dark:text-brand-300 font-bold rounded-xl text-xs transition">
+                    <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> 오답 집중 훈련
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="results-subject-cards">
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/50 px-2.5 py-1 rounded-md border border-brand-100 dark:border-brand-900" id="sub1-tag">1과목</span>
+                        <span class="text-xs font-bold text-slate-500" id="sec1-ratio">0/0</span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="sub1-title">과목 1</h4>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal" id="sub1-desc">설명</p>
+                </div>
+                <div class="mt-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5"><div id="sec1-bar" class="bg-brand-600 dark:bg-brand-400 h-1.5 rounded-full" style="width: 0%"></div></div></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-md border border-emerald-100 dark:border-emerald-900" id="sub2-tag">2과목</span>
+                        <span class="text-xs font-bold text-slate-500" id="sec2-ratio">0/0</span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="sub2-title">과목 2</h4>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal" id="sub2-desc">설명</p>
+                </div>
+                <div class="mt-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5"><div id="sec2-bar" class="bg-emerald-600 dark:bg-emerald-400 h-1.5 rounded-full" style="width: 0%"></div></div></div>
+            </div>
+            <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between transition-colors">
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-100 dark:border-amber-900" id="sub3-tag">3과목</span>
+                        <span class="text-xs font-bold text-slate-500" id="sec3-ratio">0/0</span>
+                    </div>
+                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm" id="sub3-title">과목 3</h4>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1 leading-normal" id="sub3-desc">설명</p>
+                </div>
+                <div class="mt-4"><div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5"><div id="sec3-bar" class="bg-amber-600 dark:bg-amber-400 h-1.5 rounded-full" style="width: 0%"></div></div></div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-colors">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex justify-between items-center">
+                <h3 class="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">정밀 오답 분석 및 상세 진단</h3>
+                <div class="flex gap-2">
+                    <span class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold rounded-lg flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>정답</span>
+                    <span class="px-2.5 py-1 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-400 text-[10px] font-bold rounded-lg flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>오답</span>
+                </div>
+            </div>
+            <div class="divide-y divide-slate-100 dark:divide-slate-800 p-4 sm:p-6" id="results-detailed-list"></div>
+        </div>
+    </div>
+</main>
+
+<div id="custom-modal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center z-[100] px-4">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-sm w-full overflow-hidden transform scale-95 transition-all duration-300 border border-slate-200 dark:border-slate-800">
+        <div class="p-6 text-center">
+            <div id="modal-icon-container" class="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl mb-3"></div>
+            <h3 id="modal-title" class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-2">알림</h3>
+            <p id="modal-message" class="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">메시지</p>
+            <div class="flex gap-2" id="modal-buttons-container"></div>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-900 py-6 text-center text-[11px] text-slate-400 dark:text-slate-500 transition-colors">
+    <div class="max-w-7xl mx-auto px-6">
+        <p>© 2026 CBT Dynamic Loader Remastered. All rights reserved.</p>
+        <p class="mt-1">승강기기능사 & 철도전기신호기능사 & 컴퓨터활용능력 1급 모의고사</p>
+    </div>
+</footer>
+
+<script>
+    const subjectConfig = {
+        elevator: {
+            title1: "안전관리 및 재해예방", desc1: "승강기안전기준, 보호구 착용, 전기 안전 및 기계 재해 방지 대책",
+            title2: "승강기 자체 점검", desc2: "와이어로프, 카 가이드레일, 제동장치, 안전장치 점검 기법",
+            title3: "승강기 개론 및 기초 전기", desc3: "트랙션 기어, 유압 구조, 전기 회로, 시퀀스 논리연산 소자이해"
+        },
+        railway: {
+            title1: "철도전기신호개론", desc1: "철도 안전 수칙, 기호 회로, 전선 및 신호 장비 기본 이론",
+            title2: "전기이론 및 신호설비", desc2: "맥스웰 수식, 전자기학, ATS 자동 감지 연동 기본 개념",
+            title3: "전자제어 및 궤도회로", desc3: "불대수, 주파수 논리회로 연산, 변압기 여자 임피던스 계산"
+        },
+        com: {
+            title1: "컴퓨터 일반", desc1: "운영체제 기초 구조, 하드웨어 장치 구성, 네트워크 장비 및 보안 정책",
+            title2: "스프레드시트 일반", desc2: "Excel 수식 연산, 통계 및 찾기 참조 함수, 필터링 및 다차원 차트 시각화",
+            title3: "데이터베이스 일반", desc3: "관계형 RDBMS 설계, 쿼리문 연산, 참조 무결성 및 SQL 스키마 구조 제어"
+        }
+    };
+
+    // Global App State
+    let activeLicense = 'elevator'; 
+    let selectedRoundKey = '';
+    let selectedStudyMode = 'practice'; 
+
+    let questionsDatabase = [];
+    let userAnswers = []; // 사용자가 입력한 정답 목록
+    let bookmarkedQuestions = []; // 북마크 상태 관리 배열
+    let currentFilter = 'all';
+    let currentFocusIdx = 0;
+
+    // Timer System
+    let examTimerInterval = null;
+    let examSecondsRemaining = 3600;
+    let examSecondsElapsed = 0;
+
+    // Touch Event State
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // JSON 특수문자 및 백슬래시 처리 이스케이프 보정용 클렌징 스크립트
+    function sanitizeJsonText(rawText) {
+        if (!rawText) return "";
+        let processed = rawText;
+        processed = processed.replace(/\r\n/g, "\n");
+        // 이스케이프 유실 문자 처리 가드
+        processed = processed.replace(/\\(?!["\\/bfnrtu])/g, "\\\\");
+        return processed;
+    }
+
+    // 1. 카테고리 전환 및 버튼 Active 시각화
+    function switchLicenseCategory(category) {
+        activeLicense = category;
+        ['elevator', 'railway', 'com'].forEach(cat => {
+            const btn = document.getElementById(`tab-btn-${cat}`);
+            if (btn) {
+                if (cat === category) {
+                    btn.className = "py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 bg-white dark:bg-slate-800 text-brand-600 dark:text-white shadow-md";
+                } else {
+                    btn.className = "py-3 text-center rounded-xl font-bold text-[11px] sm:text-xs md:text-sm transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100";
+                }
+            }
+        });
+        refreshExamRounds();
+    }
+
+    // 2. list.json 비동기 패치 및 데이터 가공 연동
+    function refreshExamRounds() {
+        const selectEl = document.getElementById('exam-round-select');
+        if (!selectEl) return;
+        selectEl.innerHTML = '<option value="">회차 데이터를 불러오는 중...</option>';
+
+        fetch('list.json')
+            .then(res => {
+                if (!res.ok) throw new Error('CORS 또는 네트워크 파일 로드 실패');
+                return res.json();
+            })
+            .then(data => {
+                selectEl.innerHTML = '';
+                const rounds = data[activeLicense] || {};
+                const keys = Object.keys(rounds);
+
+                if (keys.length === 0) {
+                    selectEl.innerHTML = '<option value="">제공되는 회차가 없습니다.</option>';
+                    selectedRoundKey = '';
+                    return;
+                }
+
+                keys.forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = rounds[key].title || key;
+                    selectEl.appendChild(option);
+                });
+                selectedRoundKey = selectEl.value;
+            })
+            .catch(err => {
+                console.error(err);
+                selectEl.innerHTML = '<option value="">오류: Live Server 환경 및 list.json 경로를 확인하세요.</option>';
+            });
+    }
+
+    function updateSelectedRoundKey(val) {
+        selectedRoundKey = val;
+    }
+
+    // 3. 학습 모드 핸들링 함수
+    function setStudyMode(mode) {
+        selectedStudyMode = mode;
+        const practiceBtn = document.getElementById('mode-btn-practice');
+        const examBtn = document.getElementById('mode-btn-exam');
+
+        if (mode === 'practice') {
+            practiceBtn.className = "group flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-500 bg-brand-50/20 dark:bg-brand-950/10 text-left transition-all";
+            examBtn.className = "group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-brand-300 text-left transition-all";
+        } else {
+            examBtn.className = "group flex items-start gap-4 p-4 rounded-2xl border-2 border-brand-500 bg-brand-50/20 dark:bg-brand-950/10 text-left transition-all";
+            practiceBtn.className = "group flex items-start gap-4 p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-800 hover:border-brand-300 text-left transition-all";
+        }
+    }
+
+    // 4. 기출 세부 문항 JSON 로딩 및 워크스페이스 기동 처리
+    function loadAndStartExam() {
+        if (!selectedRoundKey) {
+            showCustomModal('fa-triangle-exclamation', 'bg-amber-100 text-amber-600', '선택 유효성 확인', '시작할 기출 시험 회차가 선택되지 않았습니다.');
+            return;
+        }
+
+        const jsonPath = `${selectedRoundKey}.json`;
+        fetch(jsonPath)
+            .then(res => {
+                if (!res.ok) throw new Error(`${jsonPath} 기출 본문 파일을 찾을 수 없습니다.`);
+                return res.text();
+            })
+            .then(text => {
+                const cleaned = sanitizeJsonText(text);
+                const data = JSON.parse(cleaned);
+                questionsDatabase = data.questions || data;
+
+                // 데이터 스토어 배열 빌드 초기화
+                userAnswers = new Array(questionsDatabase.length).fill(0);
+                bookmarkedQuestions = new Array(questionsDatabase.length).fill(false);
+                currentFocusIdx = 0;
+                currentFilter = 'all';
+
+                initWorkspaceUI();
+            })
+            .catch(err => {
+                console.error(err);
+                showCustomModal('fa-circle-xmark', 'bg-rose-100 text-rose-600', '파일 로드 오류', `${jsonPath}를 불러오지 못했습니다. <br><span class="text-[10px] text-slate-400 font-mono">${err.message}</span>`);
+            });
+    }
+
+    function initWorkspaceUI() {
+        // UI 모드 뷰 제어
+        document.getElementById('mode-selection-view').classList.add('hidden');
+        document.getElementById('results-view').classList.add('hidden');
+        document.getElementById('cbt-workspace').classList.remove('hidden');
+        document.getElementById('omr-floating-trigger').classList.remove('hidden');
+        
+        const statusEl = document.getElementById('top-status-bar');
+        statusEl.classList.remove('hidden');
+
+        const timerWrap = document.getElementById('exam-timer-wrapper');
+        const modeBadge = document.getElementById('active-mode-badge');
+        
+        // 타이머 자원 청소
+        if (examTimerInterval) clearInterval(examTimerInterval);
+
+        if (selectedStudyMode === 'exam') {
+            modeBadge.textContent = "실전 모드";
+            modeBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white";
+            timerWrap.classList.remove('hidden');
+            examSecondsRemaining = 3600;
+            examSecondsElapsed = 0;
+            startExamTimer();
+        } else {
+            modeBadge.textContent = "연습 모드";
+            modeBadge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500 text-white";
+            timerWrap.classList.add('hidden');
+        }
+
+        // 전역 메타 표기 업데이트
+        const selectBox = document.getElementById('exam-round-select');
+        document.getElementById('loaded-exam-title').textContent = selectBox.options[selectBox.selectedIndex].text;
+
+        renderOMRCardBubbles();
+        applyFilterAndRefreshNavigator();
+        renderFocusedQuestion();
+    }
+
+    // 5. 타이머 로직
+    function startExamTimer() {
+        examTimerInterval = setInterval(() => {
+            if (examSecondsRemaining <= 0) {
+                clearInterval(examTimerInterval);
+                showCustomModal('fa-clock', 'bg-rose-100 text-rose-600', '시간 종료', '제한시간 60분이 완료되었습니다. 답안지가 강제 자동 제출됩니다.', [
+                    { text: '확인', style: 'bg-brand-600 text-white', action: scoreExamSubmission }
+                ]);
+                return;
+            }
+            examSecondsRemaining--;
+            examSecondsElapsed++;
+
+            const mins = Math.floor(examSecondsRemaining / 60).toString().padStart(2, '0');
+            const secs = (examSecondsRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('exam-timer').textContent = `${mins}:${secs}`;
+        }, 1000);
+    }
+
+    // 6. 문제 네비게이션 및 필터 필터링 엔진
+    function applyFilterAndRefreshNavigator() {
+        const filteredIndices = getFilteredIndices();
+        document.getElementById('btn-filter-all-count').textContent = questionsDatabase.length;
+        document.getElementById('workspace-total-count').textContent = filteredIndices.length;
+
+        // 활성화 필터 버튼 스타일링 처리
+        ['all', 'unsolved', 'flagged'].forEach(f => {
+            const btn = document.getElementById(`btn-filter-${f}`);
+            if (btn) {
+                if (f === currentFilter) {
+                    btn.className = "px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-900";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800";
+                }
+            }
+        });
+
+        // 네비게이터 배지 생성
+        const grid = document.getElementById('nav-badge-grid');
+        grid.innerHTML = '';
+        
+        filteredIndices.forEach((globalIdx, localIdx) => {
+            const btn = document.createElement('button');
+            btn.textContent = globalIdx + 1;
+            
+            let baseStyle = "py-2 text-xs font-bold font-mono rounded-xl transition transform active:scale-95 border ";
+            if (localIdx === currentFocusIdx) {
+                baseStyle += "bg-brand-600 text-white border-brand-600 ring-2 ring-brand-400";
+            } else if (userAnswers[globalIdx] > 0) {
+                baseStyle += "bg-slate-700 text-white border-slate-700 dark:bg-slate-800 dark:border-slate-800";
+            } else {
+                baseStyle += "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-850";
+            }
+
+            if (bookmarkedQuestions[globalIdx]) {
+                btn.innerHTML = `border-amber-400 ${btn.textContent}<span class="text-[8px] text-amber-400 ml-0.5">★</span>`;
+            }
+
+            btn.className = baseStyle;
+            btn.onclick = () => {
+                currentFocusIdx = localIdx;
+                renderFocusedQuestion();
+            };
+            grid.appendChild(btn);
+        });
+
+        updateOMRCounts();
+    }
+
+    function getFilteredIndices() {
+        const arr = [];
+        questionsDatabase.forEach((q, i) => {
+            if (currentFilter === 'all') arr.push(i);
+            else if (currentFilter === 'unsolved' && userAnswers[i] === 0) arr.push(i);
+            else if (currentFilter === 'flagged' && bookmarkedQuestions[i]) arr.push(i);
+        });
+        return arr;
+    }
+
+    function filterQuestions(type) {
+        currentFilter = type;
+        currentFocusIdx = 0;
+        applyFilterAndRefreshNavigator();
+        renderFocusedQuestion();
+    }
+
+    // 7. 문제 단일 화면 렌더러 (중요)
+    function renderFocusedQuestion() {
+        const container = document.getElementById('questions-viewport');
+        container.innerHTML = '';
+
+        const indices = getFilteredIndices();
+        if (indices.length === 0) {
+            container.innerHTML = `<div class="p-12 text-center text-slate-400 text-xs">필터 조건에 부합하는 문항이 존재하지 않습니다.</div>`;
+            document.getElementById('current-focus-index').textContent = '0';
+            return;
+        }
+
+        const globalIdx = indices[currentFocusIdx];
+        document.getElementById('current-focus-index').textContent = (currentFocusIdx + 1).toString();
+
+        const qData = questionsDatabase[globalIdx];
+        const card = document.createElement('div');
+        card.className = "space-y-5 animate-fade-in";
+
+        // 문제 헤더바
+        const header = document.createElement('div');
+        header.className = "flex justify-between items-start gap-4";
+        
+        const info = document.createElement('div');
+        info.innerHTML = `<span class="text-xs font-black text-brand-600 dark:text-brand-400 font-mono tracking-wider mr-2 uppercase">[${qData.subject || (Math.floor(globalIdx/20)+1 + '과목')}]</span>`;
+        
+        const qTitle = document.createElement('h3');
+        qTitle.className = "text-sm sm:text-base font-bold text-slate-900 dark:text-white leading-relaxed mt-1 inline";
+        qTitle.innerHTML = `<strong class="text-slate-400 font-mono text-base mr-1">${globalIdx + 1}.</strong> ${qData.question}`;
+        
+        info.appendChild(qTitle);
+        header.appendChild(info);
+
+        // 북마크 토글 버튼
+        const bookmarkBtn = document.createElement('button');
+        bookmarkBtn.className = `p-2 rounded-xl border text-sm transition flex-shrink-0 ${bookmarkedQuestions[globalIdx] ? 'bg-amber-50 text-amber-500 border-amber-200' : 'text-slate-400 border-slate-200 hover:bg-slate-50'}`;
+        bookmarkBtn.innerHTML = `<i class="${bookmarkedQuestions[globalIdx] ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i>`;
+        bookmarkBtn.onclick = () => {
+            bookmarkedQuestions[globalIdx] = !bookmarkedQuestions[globalIdx];
+            renderFocusedQuestion();
+            applyFilterAndRefreshNavigator();
+        };
+        header.appendChild(bookmarkBtn);
+        card.appendChild(header);
+
+        // 이미지 섹션 연동 처리
+        if (qData.image) {
+            const imgWrap = document.createElement('div');
+            imgWrap.className = "my-4 rounded-2xl bg-slate-100 dark:bg-slate-850 p-2 flex justify-center border dark:border-slate-800";
+            imgWrap.innerHTML = `<img src="${qData.image}" alt="${globalIdx+1}번 문항 이미지" class="max-h-64 object-contain rounded-xl">`;
+            card.appendChild(imgWrap);
+        }
+
+        // 보기 리스트 빌드
+        const optionsContainer = document.createElement('div');
+        optionsContainer.className = "grid grid-cols-1 gap-2.5 mt-4";
+
+        const options = qData.options || [];
+        options.forEach((optText, optIdx) => {
+            const optNum = optIdx + 1;
+            const isSelected = userAnswers[globalIdx] === optNum;
+
+            const btn = document.createElement('button');
+            
+            let btnClass = "w-full p-4 rounded-xl text-left text-xs sm:text-sm font-medium border flex items-center gap-3.5 transition group transform active:scale-[0.995] ";
+            if (isSelected) {
+                btnClass += "bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-500/10";
+            } else {
+                btnClass += "bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-850 hover:bg-slate-100 dark:hover:bg-slate-850";
+            }
+
+            // 보기 마킹 기호 번호원
+            let badgeClass = "w-5.5 h-5.5 text-[10px] rounded-full flex items-center justify-center font-bold flex-shrink-0 font-mono ";
+            if (isSelected) {
+                badgeClass += "bg-white text-brand-600";
+            } else {
+                badgeClass += "bg-slate-200 text-slate-600 dark:bg-slate-800 dark:text-slate-400 group-hover:bg-brand-100 group-hover:text-brand-600";
+            }
+
+            btn.className = btnClass;
+            btn.innerHTML = `<span class="${badgeClass}">${optNum}</span> <span class="leading-relaxed flex-grow">${optText}</span>`;
+            
+            btn.onclick = () => {
+                selectAnswerOption(globalIdx, optNum);
+            };
+            optionsContainer.appendChild(btn);
+        });
+        card.appendChild(optionsContainer);
+
+        // 연습 모드 즉시 해설/정답 출력 피드백
+        if (selectedStudyMode === 'practice' && userAnswers[globalIdx] > 0) {
+            const feedbackBox = document.createElement('div');
+            const isCorrect = userAnswers[globalIdx] === parseInt(qData.answer);
+            
+            feedbackBox.className = `p-4 rounded-2xl border mt-5 text-xs leading-relaxed space-y-2 ${isCorrect ? 'bg-emerald-50/50 border-emerald-200 text-slate-800 dark:bg-emerald-950/20 dark:border-emerald-900/50 dark:text-slate-200' : 'bg-rose-50/50 border-rose-200 text-slate-800 dark:bg-rose-950/20 dark:border-rose-900/50 dark:text-slate-200'}`;
+            
+            let fbHeader = `<div class="flex items-center gap-2 font-bold text-sm ${isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}">`;
+            fbHeader += isCorrect ? `<i class="fa-solid fa-circle-check"></i> 정답입니다!</div>` : `<i class="fa-solid fa-circle-xmark"></i> 오답입니다. (정답: ${qData.answer}번)</div>`;
+            
+            feedbackBox.innerHTML = fbHeader + `<div class="pt-1.5 border-t border-slate-200/50 dark:border-slate-800/50 font-medium text-slate-500 dark:text-slate-400"><span class="font-extrabold text-slate-700 dark:text-slate-300">[오답 피드백 및 상세 해설]</span><br>${qData.desc || '해당 문항의 등록된 해설 정보가 없습니다.'}</div>`;
+            card.appendChild(feedbackBox);
+        }
+
+        container.appendChild(card);
+        
+        // LaTeX 수식 렌더 리프레시 컴파일러 연동 트리거
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+            window.MathJax.typesetPromise([container]).catch(err => console.log(err));
+        }
+
+        // 동기화 리플렉션 반영
+        applyFilterAndRefreshNavigator();
+        highlightOMRBubbleActive(globalIdx);
+    }
+
+    function selectAnswerOption(globalIdx, optionNum) {
+        userAnswers[globalIdx] = optionNum;
+        renderFocusedQuestion();
+        
+        // 연습모드가 아니고 실전 모드면 마킹 후 자동으로 1초 뒤 다음 문제 이동 처리 옵션 가능
+        const omrRow = document.getElementById(`omr-row-${globalIdx}`);
+        if (omrRow) {
+            const bubbles = omrRow.querySelectorAll('.omr-bubble');
+            bubbles.forEach((b, idx) => {
+                if (idx === (optionNum - 1)) {
+                    b.className = "omr-bubble w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-slate-800 text-white dark:bg-white dark:text-slate-900";
+                } else {
+                    b.className = "omr-bubble w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200";
+                }
+            });
+        }
+        updateOMRCounts();
+    }
+
+    function prevQuestion() {
+        if (currentFocusIdx > 0) {
+            currentFocusIdx--;
+            renderFocusedQuestion();
+        }
+    }
+
+    function nextQuestion() {
+        const indices = getFilteredIndices();
+        if (currentFocusIdx < indices.length - 1) {
+            currentFocusIdx++;
+            renderFocusedQuestion();
+        }
+    }
+
+    // 8. OMR 버블 그리기 및 양방향 마킹 체계 동기화
+    function renderOMRCardBubbles() {
+        const listContainer = document.getElementById('omr-card-list');
+        listContainer.innerHTML = '';
+
+        questionsDatabase.forEach((q, i) => {
+            const row = document.createElement('div');
+            row.id = `omr-row-${i}`;
+            row.className = "flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-transparent hover:bg-white dark:hover:bg-slate-800/50 transition";
+            
+            const numLabel = document.createElement('button');
+            numLabel.className = "text-xs font-mono font-bold text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 w-8 text-left";
+            numLabel.textContent = (i + 1).toString().padStart(2, '0');
+            numLabel.onclick = () => {
+                currentFilter = 'all';
+                currentFocusIdx = i;
+                renderFocusedQuestion();
+                if (window.innerWidth < 1024) toggleOMRDrawer();
+            };
+            row.appendChild(numLabel);
+
+            const bubbleGroup = document.createElement('div');
+            bubbleGroup.className = "flex items-center gap-1.5";
+
+            for (let bNum = 1; bNum <= 4; bNum++) {
+                const bubble = document.createElement('button');
+                bubble.textContent = bNum;
+                
+                const isSelected = userAnswers[i] === bNum;
+                bubble.className = isSelected 
+                    ? "omr-bubble w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-slate-800 text-white dark:bg-white dark:text-slate-900" 
+                    : "omr-bubble w-5.5 h-5.5 rounded-full flex items-center justify-center text-[10px] font-bold font-mono bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 hover:bg-slate-200";
+                
+                bubble.onclick = () => {
+                    selectAnswerOption(i, bNum);
+                    // 활성화 포커싱 맞춰주기
+                    const indices = getFilteredIndices();
+                    const localLoc = indices.indexOf(i);
+                    if (localLoc !== -1) {
+                        currentFocusIdx = localLoc;
+                    } else {
+                        currentFilter = 'all';
+                        currentFocusIdx = i;
+                    }
+                    renderFocusedQuestion();
+                };
+                bubbleGroup.appendChild(bubble);
+            }
+            row.appendChild(bubbleGroup);
+            listContainer.appendChild(row);
+        });
+    }
+
+    function highlightOMRBubbleActive(globalIdx) {
+        questionsDatabase.forEach((q, i) => {
+            const r = document.getElementById(`omr-row-${i}`);
+            if (r) {
+                if (i === globalIdx) r.classList.add('bg-brand-50/50', 'dark:bg-slate-800', 'border-brand-100', 'dark:border-slate-700');
+                else r.className = "flex items-center justify-between py-1.5 px-2.5 rounded-xl border border-transparent hover:bg-white dark:hover:bg-slate-800/50 transition";
+            }
+        });
+    }
+
+    function updateOMRCounts() {
+        const solved = userAnswers.filter(a => a > 0).length;
+        const total = questionsDatabase.length;
+        
+        document.getElementById('omr-progress').textContent = `${solved} / ${total} 마킹`;
+        document.getElementById('omr-floating-badge').textContent = (total - solved).toString();
+    }
+
+    function toggleOMRDrawer() {
+        const drawer = document.getElementById('omr-drawer');
+        const backdrop = document.getElementById('omr-backdrop');
+        if (drawer.classList.contains('translate-x-full')) {
+            drawer.classList.remove('translate-x-full');
+            backdrop.classList.remove('hidden');
+        } else {
+            drawer.classList.add('translate-x-full');
+            backdrop.classList.add('hidden');
+        }
+    }
+
+    // 9. 성적 산출 및 합격 여부 비즈니스 공식 검증 연동 구조
+    function confirmSubmitExam() {
+        const solved = userAnswers.filter(a => a > 0).length;
+        const total = questionsDatabase.length;
+        let msg = `총 ${total}문항 중 ${solved}문항 마킹을 완료했습니다.<br>이대로 최종 답안지를 제출하고 채점을 진행할까요?`;
+        
+        if (solved < total) {
+            msg += `<br><span class="text-rose-500 font-bold text-[11px]">⚠️ 아직 마킹하지 않은 미완료 문항이 ${total - solved}개 존재합니다.</span>`;
+        }
+
+        showCustomModal('fa-circle-question', 'bg-brand-100 text-brand-600', '최종 답안 제출 검증', msg, [
+            { text: '취소', style: 'bg-slate-100 text-slate-700' },
+            { text: '제출 및 채점', style: 'bg-brand-600 text-white', action: scoreExamSubmission }
+        ]);
+    }
+
+    function scoreExamSubmission() {
+        if (examTimerInterval) clearInterval(examTimerInterval);
+
+        // 분석을 위한 변수군
+        let correctCount = 0;
+        const total = questionsDatabase.length;
+        
+        // 과목별 점수 데이터 처리를 위한 매핑 빌드 구조 (20개씩 끊김 가정 혹은 과목별 매핑 필드 연동)
+        const subMap = {
+            1: { c: 0, t: 0 },
+            2: { c: 0, t: 0 },
+            3: { c: 0, t: 0 }
+        };
+
+        questionsDatabase.forEach((q, i) => {
+            const userAns = userAnswers[i];
+            const actualAns = parseInt(q.answer);
+            const subNum = q.subject_num ? parseInt(q.subject_num) : (Math.floor(i / 20) + 1);
+            
+            if (!subMap[subNum]) subMap[subNum] = { c: 0, t: 0 };
+            subMap[subNum].t++;
+
+            if (userAns === actualAns) {
+                correctCount++;
+                subMap[subNum].c++;
+            }
+        });
+
+        // 100점 만점 환산 점수
+        const finalScore = Math.round((correctCount / total) * 100);
+        
+        // UI 반영
+        document.getElementById('result-score').textContent = `${finalScore}점`;
+        document.getElementById('result-correct-count').textContent = correctCount.toString();
+        document.getElementById('results-total-count').textContent = total.toString();
+        document.getElementById('result-wrong-count').textContent = (total - correctCount).toString();
+        
+        const minTime = Math.floor(examSecondsElapsed / 60);
+        const secTime = examSecondsElapsed % 60;
+        document.getElementById('result-elapsed-time').textContent = selectedStudyMode === 'exam' ? `${minTime}분 ${secTime}초` : '연습 모드는 무제한';
+
+        // 합격 유무 검증 로직
+        const badge = document.getElementById('result-status-badge');
+        let isPass = finalScore >= 60;
+        let isGw拉克 = false; // 과락 여부 (40점 미만 과목 체크)
+
+        Object.keys(subMap).forEach(k => {
+            const ratio = subMap[k].c / subMap[k].t;
+            if (ratio < 0.4) isGw拉克 = true;
+        });
+
+        if (isPass && !isGw拉克) {
+            badge.textContent = "최종 합격 합격선 달성";
+            badge.className = "px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white inline-block";
+        } else if (isPass && isGw拉克) {
+            badge.textContent = "불합격 (평균 통과이나 과락 기준 미만 발생)";
+            badge.className = "px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-white inline-block";
+        } else {
+            badge.textContent = "불합격 (기준 합격 점수 미달)";
+            badge.className = "px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-500 text-white inline-block";
+        }
+
+        // 과목 스탯 카드 드로잉 레이아웃 바인딩
+        const conf = subjectConfig[activeLicense] || {};
+        for (let idx = 1; idx <= 3; idx++) {
+            const dataObj = subMap[idx] || { c: 0, t: 0 };
+            document.getElementById(`sub${idx}-title`).textContent = conf[`title${idx}`] || `제 ${idx}과목`;
+            document.getElementById(`sub${idx}-desc`).textContent = conf[`desc${idx}`] || "";
+            document.getElementById(`sec${idx}-ratio`).textContent = `${dataObj.c} / ${dataObj.t}문항`;
+            
+            const percent = dataObj.t > 0 ? Math.round((dataObj.c / dataObj.t) * 100) : 0;
+            document.getElementById(`sec${idx}-bar`).style.width = `${percent}%`;
+        }
+
+        // 하단 디테일 리스트 오답노트 렌더링
+        const detailContainer = document.getElementById('results-detailed-list');
+        detailContainer.innerHTML = '';
+
+        questionsDatabase.forEach((q, i) => {
+            const userAns = userAnswers[i];
+            const actualAns = parseInt(q.answer);
+            const isCorr = userAns === actualAns;
+
+            const dRow = document.createElement('div');
+            dRow.className = "py-4 first:pt-0 last:pb-0 flex flex-col gap-2";
+
+            const dHeader = document.createElement('div');
+            dHeader.className = "flex items-start gap-2 text-xs sm:text-sm font-semibold";
+            dHeader.innerHTML = `<span class="w-5 h-5 rounded-md flex items-center justify-center font-mono font-bold flex-shrink-0 ${isCorr ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}">${i + 1}</span> <div class="text-slate-800 dark:text-slate-200 leading-relaxed">${q.question}</div>`;
+            dRow.appendChild(dHeader);
+
+            const dMeta = document.createElement('div');
+            dMeta.className = "pl-7 text-[11px] text-slate-500 flex flex-wrap gap-x-4 gap-y-1 font-medium";
+            dMeta.innerHTML = `<span>선택한 보기: <strong class="${isCorr ? 'text-emerald-600' : 'text-rose-600 font-bold'}">${userAns === 0 ? '미마킹' : userAns + '번'}</strong></span> 
+                               <span>실제 정답: <strong class="text-emerald-600 font-bold">${actualAns}번</strong></span>`;
+            dRow.appendChild(dMeta);
+
+            if (!isCorr) {
+                const dDesc = document.createElement('div');
+                dDesc.className = "ml-7 mt-1.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border text-[11px] text-slate-400 leading-relaxed font-normal";
+                dDesc.innerHTML = `<span class="font-extrabold text-slate-600 dark:text-slate-300">💡 문항 풀이 해설:</span> ${q.desc || '등록된 데이터 해설 정보가 공백입니다.'}`;
+                dRow.appendChild(dDesc);
+            }
+
+            detailContainer.appendChild(dRow);
+        });
+
+        // 뷰 전환
+        document.getElementById('cbt-workspace').classList.add('hidden');
+        document.getElementById('omr-floating-trigger').classList.add('hidden');
+        document.getElementById('results-view').classList.remove('hidden');
+
+        if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+            window.MathJax.typesetPromise([detailContainer]).catch(err => console.log(err));
+        }
+    }
+
+    // 10. 오답 집중 훈련 세션 빌더 함수
+    function startWrongAnswersTraining() {
+        const wrongIndices = [];
+        questionsDatabase.forEach((q, i) => {
+            if (userAnswers[i] !== parseInt(q.answer)) {
+                wrongIndices.push(i);
+            }
+        });
+
+        if (wrongIndices.length === 0) {
+            showCustomModal('fa-circle-check', 'bg-emerald-100 text-emerald-600', '훈련 불가', '틀린 문항이 없어 오답 훈련 모드를 빌드할 수 없습니다! 만점 합격입니다.');
+            return;
+        }
+
+        // 전체 데이터를 오답 배열 데이터베이스로 리빌드 후 연습모드로 기동 강제 변조
+        const rebuiltDb = wrongIndices.map(idx => questionsDatabase[idx]);
+        questionsDatabase = rebuiltDb;
+        userAnswers = new Array(questionsDatabase.length).fill(0);
+        bookmarkedQuestions = new Array(questionsDatabase.length).fill(false);
+        selectedStudyMode = 'practice';
+        currentFocusIdx = 0;
+        currentFilter = 'all';
+
+        initWorkspaceUI();
+    }
+
+    function resetApp() {
+        document.getElementById('results-view').classList.add('hidden');
+        document.getElementById('cbt-workspace').classList.add('hidden');
+        document.getElementById('top-status-bar').classList.add('hidden');
+        document.getElementById('omr-floating-trigger').classList.add('hidden');
+        document.getElementById('mode-selection-view').classList.remove('hidden');
+        
+        document.getElementById('loaded-exam-title').textContent = "자격증 종류를 선택하고 실력을 점검하세요.";
+        refreshExamRounds();
+    }
+
+    // 11. 제스처 단축키 스와이프 핸들러
+    function handleSwipeGesture() {
+        const threshold = 60;
+        if (touchStartX - touchEndX > threshold) {
+            nextQuestion(); // 왼쪽으로 밀면 다음 문제
+        } else if (touchEndX - touchStartX > threshold) {
+            prevQuestion(); // 오른쪽으로 밀면 이전 문제
+        }
+    }
+
+    function handleKeyboardShortcuts(e) {
+        // 입력창 활성화 시 무시 가드
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+
+        const indices = getFilteredIndices();
+        if (indices.length === 0) return;
+        const globalIdx = indices[currentFocusIdx];
+
+        if (e.key >= '1' && e.key <= '4') {
+            selectAnswerOption(globalIdx, parseInt(e.key));
+        } else if (e.key === 'ArrowLeft') {
+            prevQuestion();
+        } else if (e.key === 'ArrowRight') {
+            nextQuestion();
+        } else if (e.key.toLowerCase() === 'b') {
+            bookmarkedQuestions[globalIdx] = !bookmarkedQuestions[globalIdx];
+            renderFocusedQuestion();
+            applyFilterAndRefreshNavigator();
+        } else if (e.key === 'Enter') {
+            if (selectedStudyMode === 'practice') {
+                // 연습모드 가이드 갱신 리프레시 용도
+                renderFocusedQuestion();
+            }
+        }
+    }
+
+    // 12. 공통 커스텀 팝업 모달 다이얼로그 시스템
+    function showCustomModal(iconClass, bgClass, title, msg, buttons = []) {
+        const container = document.getElementById('custom-modal');
+        const iconWrap = document.getElementById('modal-icon-container');
+        const titleWrap = document.getElementById('modal-title');
+        const msgWrap = document.getElementById('modal-message');
+        const btnGroup = document.getElementById('modal-buttons-container');
+
+        iconWrap.className = `w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl mb-3 ${bgClass}`;
+        iconWrap.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+
+        titleWrap.textContent = title;
+        msgWrap.innerHTML = msg;
+
+        btnGroup.innerHTML = '';
+        
+        const btnConfigs = buttons.length > 0 ? buttons : [{ text: '확인', style: 'bg-brand-600 text-white' }];
+        
+        btnConfigs.forEach(b => {
+            const btn = document.createElement('button');
+            btn.className = `flex-1 py-2.5 rounded-xl text-xs font-semibold transition transform active:scale-95 ${b.style || 'bg-slate-100 text-slate-700'}`;
+            btn.textContent = b.text;
+            btn.onclick = () => {
+                container.classList.add('hidden');
+                if (b.action) b.action();
+            };
+            btnGroup.appendChild(btn);
+        });
+
+        container.classList.remove('hidden');
+    }
+
+    // Theme Selector Dropdown
+    function toggleThemeDropdown() {
+        const dp = document.getElementById('theme-dropdown');
+        dp.classList.toggle('hidden');
+    }
+
+    function changeTheme(mode) {
+        if (mode === 'system') localStorage.removeItem('cbt-theme');
+        else localStorage.setItem('cbt-theme', mode);
+        applySystemTheme();
+        document.getElementById('theme-dropdown').classList.add('hidden');
+    }
+
+    // 윈도우 클릭 드롭다운 자동 닫기 디바운스 바인딩
+    window.addEventListener('click', (e) => {
+        const container = document.getElementById('theme-selector-container');
+        if (container && !container.contains(e.target)) {
+            document.getElementById('theme-dropdown').classList.add('hidden');
+        }
+    });
+
+    // 앱 초기 가동
+    window.onload = function() {
+        switchLicenseCategory('elevator');
+        
+        const swipeArea = document.getElementById('swipe-viewport');
+        if (swipeArea) {
+            swipeArea.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+            swipeArea.addEventListener('touchend', (e) => { touchEndX = e.changedTouches[0].screenX; handleSwipeGesture(); }, { passive: true });
+        }
+        document.addEventListener('keydown', handleKeyboardShortcuts);
+    };
+</script>
+</body>
+</html>
