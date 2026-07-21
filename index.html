@@ -3,358 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CBT 시험장</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* PIN 레이어 (오버레이) */
-        #pin-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-
-        /* PIN 입력 카드 */
-        .pin-card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            padding: 36px 28px;
-            border-radius: 16px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-            text-align: center;
-            max-width: 360px;
-            width: 100%;
-        }
-
-        .pin-card h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #f8fafc;
-        }
-
-        .pin-card p {
-            font-size: 0.875rem;
-            color: #94a3b8;
-            margin-bottom: 24px;
-        }
-
-        /* 4자리 키패드 스타일의 입력 박스 영역 */
-        .pin-input-container {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        /* 투명 가상 포커스 입력창 */
-        .real-pin-input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-            font-size: 1px;
-        }
-
-        .pin-digit {
-            width: 52px;
-            height: 60px;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #38bdf8;
-            background: #0f172a;
-            transition: all 0.2s ease;
-        }
-
-        /* 입력 도중 또는 선택 시 스타일 */
-        .pin-digit.active {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-        }
-
-        .pin-digit.filled {
-            border-color: #0284c7;
-        }
-
-        /* 메시지 영역 */
-        .status-msg {
-            font-size: 0.875rem;
-            min-height: 20px;
-            margin-top: 10px;
-            font-weight: 500;
-        }
-
-        .status-msg.error {
-            color: #f87171;
-        }
-
-        .status-msg.lockout {
-            color: #fbbf24;
-        }
-
-        /* 애니메이션 효과 */
-        .shake {
-            animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-
-        /* 본문 보호 컨텐츠 */
-        #protected-content {
-            display: none;
-            text-align: center;
-            padding: 40px;
-        }
-    </style>
-</head>
-<body>
-
-    <!-- 1. PIN 인증 화면 오버레이 -->
-    <div id="pin-overlay">
-        <div class="pin-card" id="pin-card">
-            <h2>보안 인증</h2>
-            <p id="sub-title">4자리 PIN 번호를 입력해 주세요.</p>
-            
-            <div class="pin-input-container">
-                <!-- 사용자 시각용 4자리 칸 -->
-                <div class="pin-digit" id="digit-0"></div>
-                <div class="pin-digit" id="digit-1"></div>
-                <div class="pin-digit" id="digit-2"></div>
-                <div class="pin-digit" id="digit-3"></div>
-                
-                <!-- 실제 입력을 받는 숨겨진 input -->
-                <input type="password" id="real-pin" class="real-pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autofocus>
-            </div>
-
-            <div id="status-msg" class="status-msg"></div>
-        </div>
-    </div>
-
-    <!-- 2. 보호할 화면 본문 -->
-    <div id="protected-content">
-        <h1>인증 완료!</h1>
-        <p>비밀번호가 일치하여 보호된 페이지로 들어왔습니다.</p>
-    </div>
-
-    <script>
-        // ================= CONFIGURATION =================
-        const CORRECT_PIN = "1234"; // 올바른 PIN 번호 설정
-        const MAX_ATTEMPTS = 5;      // 최대 시도 횟수
-        const LOCKOUT_SECONDS = 30;  // 잠금 대기 시간 (초)
-        // =================================================
-
-        let failedAttempts = 0;
-        let timerInterval = null;
-
-        const realPinInput = document.getElementById('real-pin');
-        const pinOverlay = document.getElementById('pin-overlay');
-        const protectedContent = document.getElementById('protected-content');
-        const statusMsg = document.getElementById('status-msg');
-        const pinCard = document.getElementById('pin-card');
-        const digitBoxes = [
-            document.getElementById('digit-0'),
-            document.getElementById('digit-1'),
-            document.getElementById('digit-2'),
-            document.getElementById('digit-3')
-        ];
-
-        // --- 쿠키 관리 함수 ---
-        function setCookie(name, value, seconds) {
-            let expires = "";
-            if (seconds) {
-                const date = new Date();
-                date.setTime(date.getTime() + (seconds * 1000));
-                expires = "; expires=" + date.toUTCString();
-            }
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
-        }
-
-        function getCookie(name) {
-            const nameEQ = name + "=";
-            const ca = document.cookie.split(';');
-            for(let i = 0; i < ca.length; i++) {
-                let c = ca[i];
-                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
-            }
-            return null;
-        }
-
-        function deleteCookie(name) {
-            document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        }
-
-        // --- 초기화 및 실행 ---
-        window.onload = function() {
-            checkLockoutState();
-        };
-
-        // 어디를 클릭하든 input에 포커스가 유지되도록 설정
-        document.addEventListener('click', function(e) {
-            if (pinOverlay.style.display !== 'none' && !realPinInput.disabled) {
-                realPinInput.focus();
-            }
-        });
-
-        // PIN 입력 시 시각 표시 업데이터 및 검증
-        realPinInput.addEventListener('input', function() {
-            const value = this.value;
-            
-            // 시각적 박스 업데이트
-            digitBoxes.forEach((box, index) => {
-                if (index < value.length) {
-                    box.textContent = '•';
-                    box.classList.add('filled');
-                    box.classList.remove('active');
-                } else if (index === value.length) {
-                    box.textContent = '';
-                    box.classList.remove('filled');
-                    box.classList.add('active');
-                } else {
-                    box.textContent = '';
-                    box.classList.remove('filled', 'active');
-                }
-            });
-
-            // 4자리가 모두 입력되었을 때 확인 버튼 없이 자동 검증
-            if (value.length === 4) {
-                verifyPin(value);
-            }
-        });
-
-        // PIN 번호 검증 logic
-        function verifyPin(enteredPin) {
-            if (enteredPin === CORRECT_PIN) {
-                // 성공 시 처리
-                deleteCookie("pin_lockout_until");
-                pinOverlay.style.display = 'none';
-                protectedContent.style.display = 'block';
-            } else {
-                // 실패 시 처리
-                failedAttempts++;
-                realPinInput.value = '';
-                resetBoxes();
-
-                if (failedAttempts >= MAX_ATTEMPTS) {
-                    const lockoutUntil = Date.now() + (LOCKOUT_SECONDS * 1000);
-                    setCookie("pin_lockout_until", lockoutUntil, LOCKOUT_SECONDS);
-                    startLockout(LOCKOUT_SECONDS);
-                } else {
-                    triggerShake();
-                    statusMsg.className = "status-msg error";
-                    statusMsg.textContent = `PIN이 일치하지 않습니다. (${failedAttempts}/${MAX_ATTEMPTS})`;
-                }
-            }
-        }
-
-        // 시각 박스 초기화
-        function resetBoxes() {
-            digitBoxes.forEach((box, index) => {
-                box.textContent = '';
-                box.classList.remove('filled', 'active');
-                if (index === 0) box.classList.add('active');
-            });
-        }
-
-        // 실패 시 흔들림 애니메이션
-        function triggerShake() {
-            pinCard.classList.remove('shake');
-            void pinCard.offsetWidth; // DOM reflow 조작
-            pinCard.classList.add('shake');
-        }
-
-        // 잠금 상태 확인 (새로고침 방지용 쿠키 체크)
-        function checkLockoutState() {
-            const lockoutUntil = getCookie("pin_lockout_until");
-            if (lockoutUntil) {
-                const remainingMs = parseInt(lockoutUntil, 10) - Date.now();
-                if (remainingMs > 0) {
-                    const remainingSeconds = Math.ceil(remainingMs / 1000);
-                    startLockout(remainingSeconds);
-                } else {
-                    deleteCookie("pin_lockout_until");
-                    unlockInput();
-                }
-            } else {
-                unlockInput();
-            }
-        }
-
-        // 잠금 모드 시작
-        function startLockout(seconds) {
-            realPinInput.disabled = true;
-            realPinInput.value = '';
-            resetBoxes();
-            
-            digitBoxes.forEach(box => box.classList.remove('active'));
-
-            let remaining = seconds;
-            statusMsg.className = "status-msg lockout";
-            statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
-
-            if (timerInterval) clearInterval(timerInterval);
-
-            timerInterval = setInterval(() => {
-                remaining--;
-                if (remaining > 0) {
-                    statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
-                } else {
-                    clearInterval(timerInterval);
-                    deleteCookie("pin_lockout_until");
-                    unlockInput();
-                }
-            }, 1000);
-        }
-
-        // 잠금 해제
-        function unlockInput() {
-            failedAttempts = 0;
-            realPinInput.disabled = false;
-            statusMsg.textContent = '';
-            statusMsg.className = "status-msg";
-            resetBoxes();
-            realPinInput.focus();
-        }
-    </script>
-
-    <!-- Tailwind CSS -->
+    <title>승강기기능사 CBT 시험장</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -368,11 +17,9 @@
             }
         }
     </script>
-    <!-- KaTeX for Math Rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
@@ -402,11 +49,133 @@
         }
 
         .katex-display { margin: 0.4em 0 !important; }
+
+        /* ================= PIN 인증 레이어 스타일 ================= */
+        #pin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999; /* 최고 상위 레이어 지정 */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .pin-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 36px 28px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 360px;
+            width: 100%;
+            color: #f8fafc;
+        }
+
+        .pin-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .pin-card p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        .pin-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .real-pin-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 1px;
+        }
+
+        .pin-digit {
+            width: 52px;
+            height: 60px;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #38bdf8;
+            background: #0f172a;
+            transition: all 0.2s ease;
+        }
+
+        .pin-digit.active {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .pin-digit.filled {
+            border-color: #0284c7;
+        }
+
+        .status-msg {
+            font-size: 0.875rem;
+            min-height: 20px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .status-msg.error { color: #f87171; }
+        .status-msg.lockout { color: #fbbf24; }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
 
-    <!-- Header / Navbar -->
+    <div id="pin-overlay">
+        <div class="pin-card" id="pin-card">
+            <h2>보안 인증</h2>
+            <p id="sub-title">4자리 PIN 번호를 입력해 주세요.</p>
+            
+            <div class="pin-input-container">
+                <div class="pin-digit" id="digit-0"></div>
+                <div class="pin-digit" id="digit-1"></div>
+                <div class="pin-digit" id="digit-2"></div>
+                <div class="pin-digit" id="digit-3"></div>
+                
+                <input type="password" id="real-pin" class="real-pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autofocus>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+        </div>
+    </div>
+
     <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 transition-colors shadow-sm">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center space-x-3 cursor-pointer" onclick="resetToStart()">
@@ -414,25 +183,22 @@
                     <i class="fa-solid fa-elevator"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-base md:text-lg tracking-tight text-slate-900 dark:text-white" id="headerTitle">기능사 CBT</h1>
+                    <h1 class="font-bold text-base md:text-lg tracking-tight text-slate-900 dark:text-white" id="headerTitle">승강기기능사 CBT</h1>
                     <p class="text-[10px] text-slate-400 font-medium hidden sm:block">실전 컴퓨터 기반 시험 시스템</p>
                 </div>
             </div>
             
             <div class="flex items-center space-x-2">
-                <!-- Font size controls -->
                 <div class="hidden sm:flex items-center bg-slate-100 dark:bg-slate-700/60 rounded-lg p-1 text-xs">
                     <button onclick="changeFontSize(-1)" class="px-2 py-1 rounded hover:bg-white dark:hover:bg-slate-600 font-semibold transition" title="글자 축소">A-</button>
                     <button onclick="resetFontSize()" class="px-2 py-1 rounded hover:bg-white dark:hover:bg-slate-600 font-semibold transition" title="기본 크기">A</button>
                     <button onclick="changeFontSize(1)" class="px-2 py-1 rounded hover:bg-white dark:hover:bg-slate-600 font-semibold transition" title="글자 확대">A+</button>
                 </div>
 
-                <!-- Dark Mode Toggle -->
                 <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-amber-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition" title="다크모드 토글">
                     <i id="darkModeIcon" class="fa-solid fa-moon"></i>
                 </button>
 
-                <!-- Timer -->
                 <div id="timerContainer" class="hidden flex items-center bg-red-500/10 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-3 py-1.5 rounded-xl font-mono font-bold text-sm">
                     <i class="fa-regular fa-clock mr-1.5 animate-pulse"></i><span id="timer">60:00</span>
                 </div>
@@ -440,10 +206,8 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 md:p-6 flex flex-col justify-center">
         
-        <!-- START SCREEN -->
         <div id="startScreen" class="max-w-xl mx-auto w-full bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 md:p-8 border border-slate-200 dark:border-slate-700 transition-colors">
             <div class="text-center mb-6">
                 <span class="inline-block bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-2">CBT System v2.0</span>
@@ -489,13 +253,10 @@
             </div>
         </div>
 
-        <!-- EXAM SCREEN (SLIDE HORIZONTAL) -->
         <div id="examScreen" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
             
-            <!-- Left Panel: Slide Viewer -->
             <div class="lg:col-span-3 space-y-4">
                 
-                <!-- Status Header & Category Bar -->
                 <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <div class="flex items-center space-x-2">
                         <span id="currentCategoryBadge" class="bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 text-xs font-bold px-3 py-1 rounded-lg">
@@ -511,14 +272,11 @@
                     </div>
                 </div>
 
-                <!-- Slide Frame -->
                 <div class="overflow-hidden rounded-3xl relative min-h-[420px] bg-transparent">
                     <div id="slideContainer" class="slide-container">
-                        <!-- Slide Items Rendered Here -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Navigation Controls -->
                 <div class="bg-white dark:bg-slate-800 p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
                     <button id="btnPrevQ" onclick="prevQuestion()" class="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold px-4 py-2.5 rounded-xl text-sm transition flex items-center space-x-2 disabled:opacity-40">
                         <i class="fa-solid fa-chevron-left"></i>
@@ -536,7 +294,6 @@
                 </div>
             </div>
 
-            <!-- Right Panel: OMR Card (Desktop & Drawer for Mobile) -->
             <div id="omrDrawer" class="fixed lg:static inset-0 z-40 bg-slate-900/50 lg:bg-transparent backdrop-blur-xs lg:backdrop-blur-none hidden lg:block lg:col-span-1">
                 <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl lg:shadow-md border border-slate-200 dark:border-slate-700 p-4 font-sans fixed lg:sticky bottom-0 left-0 right-0 max-h-[80vh] lg:max-h-[calc(100vh-6rem)] top-auto lg:top-20 flex flex-col transition-all">
                     
@@ -554,10 +311,8 @@
                         </div>
                     </div>
 
-                    <!-- OMR Grid -->
                     <div id="omrGrid" class="flex-1 overflow-y-auto space-y-1.5 pr-1"></div>
 
-                    <!-- Submit Button -->
                     <div class="pt-3 border-t border-slate-200 dark:border-slate-700 mt-2">
                         <button onclick="submitExamPrompt()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl shadow-md transition text-sm flex items-center justify-center space-x-2">
                             <i class="fa-solid fa-paper-plane"></i>
@@ -568,7 +323,6 @@
             </div>
         </div>
 
-        <!-- RESULT SCREEN -->
         <div id="resultScreen" class="hidden max-w-3xl mx-auto w-full bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 md:p-8 border border-slate-200 dark:border-slate-700 my-4 transition-colors">
             <div class="text-center pb-6 border-b border-slate-200 dark:border-slate-700 mb-6">
                 <div id="passBadge" class="inline-block px-4 py-1.5 rounded-full text-xs font-extrabold mb-3"></div>
@@ -602,7 +356,6 @@
 
     </main>
 
-    <!-- Modal Dialog -->
     <div id="modalBackdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-800 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
             <h3 id="modalTitle" class="text-lg font-bold mb-2 text-slate-900 dark:text-white">알림</h3>
@@ -611,24 +364,183 @@
         </div>
     </div>
 
-    <!-- JavaScript Application Logic -->
     <script>
+        // ================= PIN 인증 시스템 영역 =================
+        const CORRECT_PIN = "1234"; // 설정할 PIN 번호
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_SECONDS = 30;
+
+        let failedAttempts = 0;
+        let pinTimerInterval = null;
+
+        const realPinInput = document.getElementById('real-pin');
+        const pinOverlay = document.getElementById('pin-overlay');
+        const statusMsg = document.getElementById('status-msg');
+        const pinCard = document.getElementById('pin-card');
+        const digitBoxes = [
+            document.getElementById('digit-0'),
+            document.getElementById('digit-1'),
+            document.getElementById('digit-2'),
+            document.getElementById('digit-3')
+        ];
+
+        function setCookie(name, value, seconds) {
+            let expires = "";
+            if (seconds) {
+                const date = new Date();
+                date.setTime(date.getTime() + (seconds * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
+        function checkLockoutState() {
+            const lockoutUntil = getCookie("pin_lockout_until");
+            if (lockoutUntil) {
+                const remainingMs = parseInt(lockoutUntil, 10) - Date.now();
+                if (remainingMs > 0) {
+                    const remainingSeconds = Math.ceil(remainingMs / 1000);
+                    startLockout(remainingSeconds);
+                } else {
+                    deleteCookie("pin_lockout_until");
+                    unlockInput();
+                }
+            } else {
+                unlockInput();
+            }
+        }
+
+        realPinInput.addEventListener('input', function(e) {
+            e.stopPropagation();
+            const value = this.value;
+            
+            digitBoxes.forEach((box, index) => {
+                if (index < value.length) {
+                    box.textContent = '•';
+                    box.classList.add('filled');
+                    box.classList.remove('active');
+                } else if (index === value.length) {
+                    box.textContent = '';
+                    box.classList.remove('filled');
+                    box.classList.add('active');
+                } else {
+                    box.textContent = '';
+                    box.classList.remove('filled', 'active');
+                }
+            });
+
+            if (value.length === 4) {
+                verifyPin(value);
+            }
+        });
+
+        function verifyPin(enteredPin) {
+            if (enteredPin === CORRECT_PIN) {
+                deleteCookie("pin_lockout_until");
+                pinOverlay.style.display = 'none';
+            } else {
+                failedAttempts++;
+                realPinInput.value = '';
+                resetBoxes();
+
+                if (failedAttempts >= MAX_ATTEMPTS) {
+                    const lockoutUntil = Date.now() + (LOCKOUT_SECONDS * 1000);
+                    setCookie("pin_lockout_until", lockoutUntil, LOCKOUT_SECONDS);
+                    startLockout(LOCKOUT_SECONDS);
+                } else {
+                    triggerShake();
+                    statusMsg.className = "status-msg error";
+                    statusMsg.textContent = `PIN이 일치하지 않습니다. (${failedAttempts}/${MAX_ATTEMPTS})`;
+                }
+            }
+        }
+
+        function resetBoxes() {
+            digitBoxes.forEach((box, index) => {
+                box.textContent = '';
+                box.classList.remove('filled', 'active');
+                if (index === 0) box.classList.add('active');
+            });
+        }
+
+        function triggerShake() {
+            pinCard.classList.remove('shake');
+            void pinCard.offsetWidth;
+            pinCard.classList.add('shake');
+        }
+
+        function startLockout(seconds) {
+            realPinInput.disabled = true;
+            realPinInput.value = '';
+            resetBoxes();
+            
+            digitBoxes.forEach(box => box.classList.remove('active'));
+
+            let remaining = seconds;
+            statusMsg.className = "status-msg lockout";
+            statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
+
+            if (pinTimerInterval) clearInterval(pinTimerInterval);
+
+            pinTimerInterval = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
+                } else {
+                    clearInterval(pinTimerInterval);
+                    deleteCookie("pin_lockout_until");
+                    unlockInput();
+                }
+            }, 1000);
+        }
+
+        function unlockInput() {
+            failedAttempts = 0;
+            realPinInput.disabled = false;
+            statusMsg.textContent = '';
+            statusMsg.className = "status-msg";
+            resetBoxes();
+            realPinInput.focus();
+        }
+
+        document.addEventListener('click', function() {
+            if (pinOverlay.style.display !== 'none' && !realPinInput.disabled) {
+                realPinInput.focus();
+            }
+        });
+
+        // ================= CBT 시스템 영역 =================
         let examListMap = {};
         let currentQuestions = [];
-        let userAnswers = {};      // { qId: optionNum }
-        let isAnswerLocked = {};   // { qId: boolean } -> 연습모드 및 채점후 변경금지
+        let userAnswers = {};      
+        let isAnswerLocked = {};   
         let currentIndex = 0;
-        let examMode = "exam";     // 'exam' | 'practice' | 'review'
+        let examMode = "exam";     
         let timerInterval = null;
         let timeRemaining = 3600;
         let fontSizeLevel = 1;
         const fontSizeClasses = ['text-size-sm', 'text-size-base', 'text-size-lg', 'text-size-xl'];
 
-        // Touch event variables for swiping
         let touchStartX = 0;
         let touchEndX = 0;
 
         window.addEventListener('DOMContentLoaded', () => {
+            checkLockoutState();
             initDarkMode();
             fetchListJson();
             applyFontSize();
@@ -636,7 +548,6 @@
             setupSwipeNav();
         });
 
-        // 테마 초기화
         function initDarkMode() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -654,7 +565,6 @@
             document.getElementById('darkModeIcon').className = isDark ? "fa-solid fa-sun text-amber-400" : "fa-solid fa-moon";
         }
 
-        // list.json 로드
         async function fetchListJson() {
             const select = document.getElementById('examSelect');
             try {
@@ -685,7 +595,6 @@
             }
         }
 
-        // 시험 시작
         async function startExam() {
             const select = document.getElementById('examSelect');
             const selectedKey = select.value;
@@ -756,7 +665,6 @@
             }
         }
 
-        // 슬라이드 문제 카드 렌더링
         function renderSlides() {
             const container = document.getElementById('slideContainer');
             container.innerHTML = '';
@@ -765,7 +673,6 @@
                 const item = document.createElement('div');
                 item.className = "slide-item px-1";
 
-                const isAnswered = userAnswers[q.id] !== undefined;
                 const userSelected = userAnswers[q.id];
                 const isLocked = isAnswerLocked[q.id] || false;
 
@@ -782,7 +689,6 @@
                         badgeStyle = "border-blue-600 bg-blue-600 text-white";
                     }
 
-                    // 검토/연습 모드 채점 색상
                     if (isLocked && examMode === 'practice') {
                         const isRight = q.answer === optNum;
                         if (isRight) {
@@ -805,7 +711,6 @@
                 });
                 optionsHTML += '</div>';
 
-                // 해설 영역 (연습 모드 및 고정 상태일 때)
                 let explanationHTML = '';
                 if (examMode === 'practice' && isLocked) {
                     const isCorrect = userSelected === q.answer;
@@ -841,21 +746,19 @@
             renderMath();
         }
 
-        // 선택 클릭 로직 (오답 수정 방지 포함)
         function selectOption(qId, optNum) {
-            if (isAnswerLocked[qId]) return; // 이미 수정 잠금된 경우 동작 안함
+            if (isAnswerLocked[qId]) return;
 
             userAnswers[qId] = optNum;
 
             if (examMode === 'practice') {
-                isAnswerLocked[qId] = true; // 연습모드에서는 첫 선택 후 잠금
+                isAnswerLocked[qId] = true;
             }
 
             renderSlides();
             renderOMR();
         }
 
-        // 슬라이드 위치 업데이트
         function updateSlidePosition() {
             const container = document.getElementById('slideContainer');
             container.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -864,7 +767,6 @@
             document.getElementById('currentQuestionNum').textContent = currentIndex + 1;
             document.getElementById('currentCategoryBadge').textContent = currentQ ? (currentQ.category || "일반") : "";
 
-            // 이전/다음 버튼 비활성화 제어
             document.getElementById('btnPrevQ').disabled = (currentIndex === 0);
             const btnNext = document.getElementById('btnNextQ');
             if (currentIndex === currentQuestions.length - 1) {
@@ -902,7 +804,6 @@
             }
         }
 
-        // OMR 답안지 렌더링
         function renderOMR() {
             const grid = document.getElementById('omrGrid');
             grid.innerHTML = '';
@@ -966,7 +867,6 @@
             });
         }
 
-        // 모바일 OMR 토글
         function toggleMobileOmr(forceState) {
             const drawer = document.getElementById('omrDrawer');
             if (typeof forceState === 'boolean') {
@@ -977,9 +877,11 @@
             }
         }
 
-        // 키보드/터치 넘기기 설정
         function setupKeyboardNav() {
             window.addEventListener('keydown', (e) => {
+                // PIN 오버레이가 활성화된 동안에는 CBT 단축키 차단
+                if (pinOverlay.style.display !== 'none') return;
+
                 const examScreen = document.getElementById('examScreen');
                 if (examScreen.classList.contains('hidden')) return;
 
@@ -995,10 +897,12 @@
         function setupSwipeNav() {
             const container = document.getElementById('slideContainer');
             container.addEventListener('touchstart', (e) => {
+                if (pinOverlay.style.display !== 'none') return;
                 touchStartX = e.changedTouches[0].screenX;
             }, { passive: true });
 
             container.addEventListener('touchend', (e) => {
+                if (pinOverlay.style.display !== 'none') return;
                 touchEndX = e.changedTouches[0].screenX;
                 handleSwipe();
             }, { passive: true });
@@ -1006,13 +910,12 @@
 
         function handleSwipe() {
             const diff = touchEndX - touchStartX;
-            if (Math.abs(diff) > 50) { // 50px 이상 드래그 시 이동
+            if (Math.abs(diff) > 50) {
                 if (diff < 0) nextQuestion();
                 else prevQuestion();
             }
         }
 
-        // 타이머
         function startTimer() {
             clearInterval(timerInterval);
             updateTimerDisplay();
@@ -1035,7 +938,6 @@
                 `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // 답안 제출 프롬프트
         function submitExamPrompt() {
             const answered = Object.keys(userAnswers).length;
             const unanswered = currentQuestions.length - answered;
@@ -1051,11 +953,9 @@
             ]);
         }
 
-        // 시험 채점
         function submitExam() {
             clearInterval(timerInterval);
 
-            // 전체 답변 잠금 (오답 수정 방지)
             currentQuestions.forEach(q => {
                 isAnswerLocked[q.id] = true;
             });
@@ -1116,7 +1016,6 @@
             }
         }
 
-        // 오답노트 및 검토
         function reviewWrongAnswersOnly() {
             examMode = "practice";
             document.getElementById('resultScreen').classList.add('hidden');
