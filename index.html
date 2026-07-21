@@ -4,6 +4,356 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CBT 시험장</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* PIN 레이어 (오버레이) */
+        #pin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        /* PIN 입력 카드 */
+        .pin-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 36px 28px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            max-width: 360px;
+            width: 100%;
+        }
+
+        .pin-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #f8fafc;
+        }
+
+        .pin-card p {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-bottom: 24px;
+        }
+
+        /* 4자리 키패드 스타일의 입력 박스 영역 */
+        .pin-input-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        /* 투명 가상 포커스 입력창 */
+        .real-pin-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 1px;
+        }
+
+        .pin-digit {
+            width: 52px;
+            height: 60px;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #38bdf8;
+            background: #0f172a;
+            transition: all 0.2s ease;
+        }
+
+        /* 입력 도중 또는 선택 시 스타일 */
+        .pin-digit.active {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+
+        .pin-digit.filled {
+            border-color: #0284c7;
+        }
+
+        /* 메시지 영역 */
+        .status-msg {
+            font-size: 0.875rem;
+            min-height: 20px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .status-msg.error {
+            color: #f87171;
+        }
+
+        .status-msg.lockout {
+            color: #fbbf24;
+        }
+
+        /* 애니메이션 효과 */
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* 본문 보호 컨텐츠 */
+        #protected-content {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. PIN 인증 화면 오버레이 -->
+    <div id="pin-overlay">
+        <div class="pin-card" id="pin-card">
+            <h2>보안 인증</h2>
+            <p id="sub-title">4자리 PIN 번호를 입력해 주세요.</p>
+            
+            <div class="pin-input-container">
+                <!-- 사용자 시각용 4자리 칸 -->
+                <div class="pin-digit" id="digit-0"></div>
+                <div class="pin-digit" id="digit-1"></div>
+                <div class="pin-digit" id="digit-2"></div>
+                <div class="pin-digit" id="digit-3"></div>
+                
+                <!-- 실제 입력을 받는 숨겨진 input -->
+                <input type="password" id="real-pin" class="real-pin-input" maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autofocus>
+            </div>
+
+            <div id="status-msg" class="status-msg"></div>
+        </div>
+    </div>
+
+    <!-- 2. 보호할 화면 본문 -->
+    <div id="protected-content">
+        <h1>인증 완료!</h1>
+        <p>비밀번호가 일치하여 보호된 페이지로 들어왔습니다.</p>
+    </div>
+
+    <script>
+        // ================= CONFIGURATION =================
+        const CORRECT_PIN = "1234"; // 올바른 PIN 번호 설정
+        const MAX_ATTEMPTS = 5;      // 최대 시도 횟수
+        const LOCKOUT_SECONDS = 30;  // 잠금 대기 시간 (초)
+        // =================================================
+
+        let failedAttempts = 0;
+        let timerInterval = null;
+
+        const realPinInput = document.getElementById('real-pin');
+        const pinOverlay = document.getElementById('pin-overlay');
+        const protectedContent = document.getElementById('protected-content');
+        const statusMsg = document.getElementById('status-msg');
+        const pinCard = document.getElementById('pin-card');
+        const digitBoxes = [
+            document.getElementById('digit-0'),
+            document.getElementById('digit-1'),
+            document.getElementById('digit-2'),
+            document.getElementById('digit-3')
+        ];
+
+        // --- 쿠키 관리 함수 ---
+        function setCookie(name, value, seconds) {
+            let expires = "";
+            if (seconds) {
+                const date = new Date();
+                date.setTime(date.getTime() + (seconds * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+        }
+
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for(let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        function deleteCookie(name) {
+            document.cookie = name +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
+
+        // --- 초기화 및 실행 ---
+        window.onload = function() {
+            checkLockoutState();
+        };
+
+        // 어디를 클릭하든 input에 포커스가 유지되도록 설정
+        document.addEventListener('click', function(e) {
+            if (pinOverlay.style.display !== 'none' && !realPinInput.disabled) {
+                realPinInput.focus();
+            }
+        });
+
+        // PIN 입력 시 시각 표시 업데이터 및 검증
+        realPinInput.addEventListener('input', function() {
+            const value = this.value;
+            
+            // 시각적 박스 업데이트
+            digitBoxes.forEach((box, index) => {
+                if (index < value.length) {
+                    box.textContent = '•';
+                    box.classList.add('filled');
+                    box.classList.remove('active');
+                } else if (index === value.length) {
+                    box.textContent = '';
+                    box.classList.remove('filled');
+                    box.classList.add('active');
+                } else {
+                    box.textContent = '';
+                    box.classList.remove('filled', 'active');
+                }
+            });
+
+            // 4자리가 모두 입력되었을 때 확인 버튼 없이 자동 검증
+            if (value.length === 4) {
+                verifyPin(value);
+            }
+        });
+
+        // PIN 번호 검증 logic
+        function verifyPin(enteredPin) {
+            if (enteredPin === CORRECT_PIN) {
+                // 성공 시 처리
+                deleteCookie("pin_lockout_until");
+                pinOverlay.style.display = 'none';
+                protectedContent.style.display = 'block';
+            } else {
+                // 실패 시 처리
+                failedAttempts++;
+                realPinInput.value = '';
+                resetBoxes();
+
+                if (failedAttempts >= MAX_ATTEMPTS) {
+                    const lockoutUntil = Date.now() + (LOCKOUT_SECONDS * 1000);
+                    setCookie("pin_lockout_until", lockoutUntil, LOCKOUT_SECONDS);
+                    startLockout(LOCKOUT_SECONDS);
+                } else {
+                    triggerShake();
+                    statusMsg.className = "status-msg error";
+                    statusMsg.textContent = `PIN이 일치하지 않습니다. (${failedAttempts}/${MAX_ATTEMPTS})`;
+                }
+            }
+        }
+
+        // 시각 박스 초기화
+        function resetBoxes() {
+            digitBoxes.forEach((box, index) => {
+                box.textContent = '';
+                box.classList.remove('filled', 'active');
+                if (index === 0) box.classList.add('active');
+            });
+        }
+
+        // 실패 시 흔들림 애니메이션
+        function triggerShake() {
+            pinCard.classList.remove('shake');
+            void pinCard.offsetWidth; // DOM reflow 조작
+            pinCard.classList.add('shake');
+        }
+
+        // 잠금 상태 확인 (새로고침 방지용 쿠키 체크)
+        function checkLockoutState() {
+            const lockoutUntil = getCookie("pin_lockout_until");
+            if (lockoutUntil) {
+                const remainingMs = parseInt(lockoutUntil, 10) - Date.now();
+                if (remainingMs > 0) {
+                    const remainingSeconds = Math.ceil(remainingMs / 1000);
+                    startLockout(remainingSeconds);
+                } else {
+                    deleteCookie("pin_lockout_until");
+                    unlockInput();
+                }
+            } else {
+                unlockInput();
+            }
+        }
+
+        // 잠금 모드 시작
+        function startLockout(seconds) {
+            realPinInput.disabled = true;
+            realPinInput.value = '';
+            resetBoxes();
+            
+            digitBoxes.forEach(box => box.classList.remove('active'));
+
+            let remaining = seconds;
+            statusMsg.className = "status-msg lockout";
+            statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                remaining--;
+                if (remaining > 0) {
+                    statusMsg.textContent = `5회 연속 실패. ${remaining}초 후 다시 시도하세요.`;
+                } else {
+                    clearInterval(timerInterval);
+                    deleteCookie("pin_lockout_until");
+                    unlockInput();
+                }
+            }, 1000);
+        }
+
+        // 잠금 해제
+        function unlockInput() {
+            failedAttempts = 0;
+            realPinInput.disabled = false;
+            statusMsg.textContent = '';
+            statusMsg.className = "status-msg";
+            resetBoxes();
+            realPinInput.focus();
+        }
+    </script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
