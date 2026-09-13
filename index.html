@@ -340,7 +340,7 @@
                 </div>
             </div>
 
-            <!-- 오른쪽/드러워 OMR 답안지 영역 -->
+            <!-- 오른쪽/드로어 OMR 답안지 영역 -->
             <div id="omrDrawer" class="fixed lg:static inset-0 z-40 bg-slate-900/60 lg:bg-transparent backdrop-blur-xs lg:backdrop-blur-none hidden lg:block lg:col-span-1">
                 <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl lg:shadow-md border border-slate-200 dark:border-slate-700 p-4 font-sans fixed lg:sticky bottom-0 left-0 right-0 max-h-[82vh] lg:max-h-[calc(100vh-5.5rem)] top-auto lg:top-20 flex flex-col transition-all">
                     
@@ -396,11 +396,8 @@
                 <div id="subjectScoreList" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
             </div>
 
-            <!-- 결과 작업 버튼들 -->
+            <!-- 결과 작업 버튼들 (오답노트 버튼 제거됨) -->
             <div class="flex flex-col sm:flex-row justify-center gap-3">
-                <button onclick="reviewWrongAnswersOnly()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-3 rounded-xl shadow transition text-sm flex items-center justify-center">
-                    <i class="fa-solid fa-xmark mr-2"></i> 틀린 문제 오답노트 (<span id="wrongCountBadge">0</span>개)
-                </button>
                 <button onclick="reviewAllAnswers()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-3 rounded-xl shadow transition text-sm flex items-center justify-center">
                     <i class="fa-solid fa-check-double mr-2"></i> 전체 해설 보기
                 </button>
@@ -636,12 +633,12 @@
         // ================= CBT 메인 응용 상태 변수 =================
         let examListMap = {};
         let originalQuestions = [];  // 원본 전체 문제 배열
-        let currentQuestions = [];   // 현재 화면에 렌더링 중인 문제 배열 (시험 혹은 리뷰/오답노트)
+        let currentQuestions = [];   // 현재 화면에 렌더링 중인 문제 배열 (시험 혹은 전체 해설)
         let userAnswers = {};        
         let flaggedQuestions = {};   
         let isAnswerLocked = {};     
         let currentIndex = 0;
-        let examMode = "exam";       // "exam" | "practice" | "review_wrong" | "review_all"
+        let examMode = "exam";       // "exam" | "practice" | "review_all"
         let isSubmitted = false;     // 답안 제출 여부 플래그
         let omrFilter = "all";       
         let timerInterval = null;
@@ -845,7 +842,7 @@
                         badgeStyle = "border-blue-600 bg-blue-600 text-white";
                     }
 
-                    if (isLocked && (examMode === 'practice' || examMode === 'review_wrong' || examMode === 'review_all')) {
+                    if (isLocked && (examMode === 'practice' || examMode === 'review_all')) {
                         const isRight = q.answer === optNum;
                         if (isRight) {
                             cardStyle = "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 font-bold";
@@ -857,7 +854,7 @@
                     }
 
                     optionsHTML += `
-                        <button onclick="selectOption('${q.id}', ${optNum})" ${isLocked && examMode !== 'practice' && examMode !== 'exam' && examMode !== 'review_wrong' && examMode !== 'review_all' ? 'disabled' : ''} class="w-full text-left flex items-center p-3.5 md:p-4 rounded-2xl border-2 transition-all ${cardStyle} cursor-pointer">
+                        <button onclick="selectOption('${q.id}', ${optNum})" ${isLocked && examMode !== 'practice' && examMode !== 'exam' && examMode !== 'review_all' ? 'disabled' : ''} class="w-full text-left flex items-center p-3.5 md:p-4 rounded-2xl border-2 transition-all ${cardStyle} cursor-pointer">
                             <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-bold mr-3.5 shrink-0 transition ${badgeStyle}">
                                 ${optNum}
                             </div>
@@ -878,7 +875,7 @@
                 }
 
                 let explanationHTML = '';
-                if ((examMode === 'practice' || examMode === 'review_wrong' || examMode === 'review_all') && isLocked) {
+                if ((examMode === 'practice' || examMode === 'review_all') && isLocked) {
                     const isCorrect = userSelected === q.answer;
                     explanationHTML = `
                         <div class="mt-5 p-4 rounded-2xl border exam-content-text ${isCorrect ? 'bg-emerald-50/80 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800/60' : 'bg-rose-50/80 border-rose-200 dark:bg-rose-950/30 dark:border-rose-800/60'}">
@@ -917,7 +914,7 @@
         }
 
         function selectOption(qId, optNum) {
-            if (examMode === 'review_wrong' || examMode === 'review_all') return;
+            if (examMode === 'review_all') return;
             if (isAnswerLocked[qId] && examMode === 'exam') return;
 
             userAnswers[qId] = optNum;
@@ -975,7 +972,7 @@
             document.getElementById('btnPrevQ').disabled = (currentIndex === 0);
             const btnNext = document.getElementById('btnNextQ');
             
-            if (examMode === 'review_wrong' || examMode === 'review_all') {
+            if (examMode === 'review_all') {
                 if (currentIndex === currentQuestions.length - 1) {
                     btnNext.innerHTML = `<span>결과로 돌아가기</span> <i class="fa-solid fa-rotate-left"></i>`;
                     btnNext.onclick = returnToResultScreen;
@@ -1035,7 +1032,7 @@
             }
         }
 
-        // OMR 필터 탭 동적 렌더링 (제출 전 vs 제출 후 구분)
+        // OMR 필터 탭 동적 렌더링 (제출 전 vs 제출 후 구분 - 오답 필터 제거)
         function renderOmrFilterTabs() {
             const container = document.getElementById('omrFilterContainer');
             container.innerHTML = '';
@@ -1048,10 +1045,9 @@
                     <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg ${omrFilter === 'flagged' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">검토★</button>
                 `;
             } else {
-                // 제출 후: 전체, 오답, 검토
+                // 제출 후: 전체, 검토 (오답 필터 탭 제거됨)
                 container.innerHTML = `
                     <button onclick="setOmrFilter('all')" id="filterBtn-all" class="flex-1 py-1 rounded-lg ${omrFilter === 'all' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">전체</button>
-                    <button onclick="setOmrFilter('wrong')" id="filterBtn-wrong" class="flex-1 py-1 rounded-lg ${omrFilter === 'wrong' ? 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">오답</button>
                     <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg ${omrFilter === 'flagged' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">검토★</button>
                 `;
             }
@@ -1072,7 +1068,6 @@
             currentQuestions.forEach((q, idx) => {
                 const isAnswered = userAnswers[q.id] !== undefined;
                 const isFlagged = !!flaggedQuestions[q.id];
-                const isWrong = userAnswers[q.id] !== q.answer; // 미풀이 또는 오답
                 
                 if (isAnswered) answeredCount++;
 
@@ -1080,7 +1075,6 @@
                     if (omrFilter === 'unanswered' && isAnswered) return;
                     if (omrFilter === 'flagged' && !isFlagged) return;
                 } else {
-                    if (omrFilter === 'wrong' && !isWrong) return;
                     if (omrFilter === 'flagged' && !isFlagged) return;
                 }
 
@@ -1102,7 +1096,7 @@
                         btnStyle = "bg-blue-600 border-blue-600 text-white shadow-xs font-bold";
                     }
 
-                    if ((examMode === 'review_wrong' || examMode === 'review_all' || isSubmitted) && selected) {
+                    if ((examMode === 'review_all' || isSubmitted) && selected) {
                         if (q.answer === i) {
                             btnStyle = "bg-emerald-600 border-emerald-600 text-white shadow-xs font-bold";
                         } else {
@@ -1111,7 +1105,7 @@
                     }
 
                     numbersHTML += `
-                        <button onclick="selectOption('${q.id}', ${i}); goToQuestion(${idx});" ${examMode === 'review_wrong' || examMode === 'review_all' ? '' : (isLocked ? 'disabled' : '')} class="w-6 h-6 rounded-full border text-xs flex items-center justify-center transition ${btnStyle}">
+                        <button onclick="selectOption('${q.id}', ${i}); goToQuestion(${idx});" ${examMode === 'review_all' ? '' : (isLocked ? 'disabled' : '')} class="w-6 h-6 rounded-full border text-xs flex items-center justify-center transition ${btnStyle}">
                             ${i}
                         </button>
                     `;
@@ -1268,9 +1262,6 @@
             const score = Math.round((correctCount / originalQuestions.length) * 100);
             const isPass = score >= 60;
 
-            const wrongQuestionsCount = originalQuestions.filter(q => userAnswers[q.id] !== q.answer).length;
-            document.getElementById('wrongCountBadge').textContent = wrongQuestionsCount;
-
             document.getElementById('examScreen').classList.add('hidden');
             document.getElementById('progressBarContainer').classList.add('hidden');
             document.getElementById('resultScreen').classList.remove('hidden');
@@ -1312,33 +1303,6 @@
             // 제출 상태로 OMR 필터 탭 갱신
             renderOmrFilterTabs();
             renderOMR();
-        }
-
-        function reviewWrongAnswersOnly() {
-            const wrongList = originalQuestions.filter(q => userAnswers[q.id] !== q.answer);
-            if (wrongList.length === 0) {
-                showModal("오답노트", "틀린 문제가 없습니다! 모든 문제를 맞히셨습니다 🎉", [{
-                    text: "확인", bg: "bg-blue-600", action: closeModal
-                }]);
-                return;
-            }
-
-            examMode = "review_wrong";
-            currentQuestions = wrongList;
-            currentIndex = 0;
-
-            document.getElementById('resultScreen').classList.add('hidden');
-            document.getElementById('examScreen').classList.remove('hidden');
-            document.getElementById('progressBarContainer').classList.remove('hidden');
-
-            document.getElementById('omrSubmitContainer').style.display = 'none';
-            document.getElementById('omrTitleHeader').innerHTML = '<i class="fa-solid fa-xmark text-rose-500 mr-2"></i> 오답노트 보기';
-            document.getElementById('timerContainer').classList.add('hidden');
-
-            renderOmrFilterTabs();
-            renderSlides();
-            renderOMR();
-            updateSlidePosition();
         }
 
         function reviewAllAnswers() {
