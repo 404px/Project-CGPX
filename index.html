@@ -1007,6 +1007,7 @@
             } else {
                 container.innerHTML = `
                     <button onclick="setOmrFilter('all')" id="filterBtn-all" class="flex-1 py-1 rounded-lg ${omrFilter === 'all' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">전체</button>
+                    <button onclick="setOmrFilter('incorrect')" id="filterBtn-incorrect" class="flex-1 py-1 rounded-lg ${omrFilter === 'incorrect' ? 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">오답</button>
                     <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg ${omrFilter === 'flagged' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">검토★</button>
                 `;
             }
@@ -1027,6 +1028,8 @@
             currentQuestions.forEach((q, idx) => {
                 const isAnswered = userAnswers[q.id] !== undefined;
                 const isFlagged = !!flaggedQuestions[q.id];
+                const userAns = userAnswers[q.id];
+                const isIncorrect = isSubmitted && (userAns !== q.answer);
                 
                 if (isAnswered) answeredCount++;
 
@@ -1034,6 +1037,7 @@
                     if (omrFilter === 'unanswered' && isAnswered) return;
                     if (omrFilter === 'flagged' && !isFlagged) return;
                 } else {
+                    if (omrFilter === 'incorrect' && !isIncorrect) return;
                     if (omrFilter === 'flagged' && !isFlagged) return;
                 }
 
