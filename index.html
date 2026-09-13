@@ -235,7 +235,7 @@
         <div id="startScreen" class="max-w-xl mx-auto w-full bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 md:p-8 border border-slate-200 dark:border-slate-700 transition-colors">
             <div class="text-center mb-6">
                 <span class="inline-block bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-[11px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-2">
-                    CBT Remastered v2.6
+                    CBT Remastered v2.7
                 </span>
                 <h2 class="text-2xl md:text-3xl font-black text-slate-900 dark:text-white">승강기기능사 필기</h2>
                 <p class="text-xs md:text-sm text-slate-500 dark:text-slate-400 mt-1.5">시험 회차와 응시 모드를 선택한 후 시험을 시작하세요.</p>
@@ -358,11 +358,9 @@
                         </div>
                     </div>
 
-                    <!-- OMR 필터 탭 -->
-                    <div class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl mb-3 text-[11px] font-bold">
-                        <button onclick="setOmrFilter('all')" id="filterBtn-all" class="flex-1 py-1 rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs">전체</button>
-                        <button onclick="setOmrFilter('unanswered')" id="filterBtn-unanswered" class="flex-1 py-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800">미풀이</button>
-                        <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800">검토★</button>
+                    <!-- OMR 필터 탭 (제출 전 / 제출 후 동적 변경) -->
+                    <div id="omrFilterContainer" class="flex bg-slate-100 dark:bg-slate-900 p-1 rounded-xl mb-3 text-[11px] font-bold">
+                        <!-- 동적 생성됨 -->
                     </div>
 
                     <!-- OMR 문제 표 번호 Grid -->
@@ -644,6 +642,7 @@
         let isAnswerLocked = {};     
         let currentIndex = 0;
         let examMode = "exam";       // "exam" | "practice" | "review_wrong" | "review_all"
+        let isSubmitted = false;     // 답안 제출 여부 플래그
         let omrFilter = "all";       
         let timerInterval = null;
         let timeRemaining = 3600;
@@ -738,7 +737,7 @@
                     throw new Error("문제 데이터가 유효하지 않거나 비어있습니다.");
                 }
 
-                // q.id가 숫자가 아니거나 누락된 경우 안전한 인덱스 ID 부여
+                // 새로운 회차 시작 시 모든 상태 초기화
                 originalQuestions = rawData.map((q, idx) => ({
                     ...q,
                     id: (q.id !== undefined && q.id !== null) ? q.id : `q_${idx}`
@@ -751,6 +750,8 @@
                 isAnswerLocked = {};
                 currentIndex = 0;
                 timeRemaining = 3600;
+                isSubmitted = false;
+                omrFilter = "all";
 
                 document.getElementById('startScreen').classList.add('hidden');
                 document.getElementById('resultScreen').classList.add('hidden');
@@ -759,7 +760,7 @@
                 document.getElementById('headerTitle').textContent = examListMap[selectedExamKey] || "승강기기능사 CBT";
                 document.getElementById('totalQuestionsCount').textContent = currentQuestions.length;
 
-                // OMR 제출 버튼 복원 (리뷰 모드가 아닐 때)
+                // OMR 제출 버튼 복원 및 필터 초기화
                 document.getElementById('omrSubmitContainer').style.display = 'block';
                 document.getElementById('omrTitleHeader').innerHTML = '<i class="fa-solid fa-list-check text-blue-600 dark:text-blue-400 mr-2"></i> OMR 답안지';
 
@@ -772,6 +773,7 @@
                     document.getElementById('progressBarContainer').classList.remove('hidden');
                 }
 
+                renderOmrFilterTabs();
                 renderSlides();
                 renderOMR();
                 updateSlidePosition();
@@ -802,7 +804,7 @@
             }
         }
 
-        // 특정 문제 요소 내의 KaTeX만 렌더링 수행 (전체 body 순회 제거)
+        // 특정 문제 요소 내의 KaTeX만 렌더링 수행
         function renderMathInContainer(containerElement) {
             if (window.renderMathInElement && containerElement) {
                 try {
@@ -910,13 +912,11 @@
                 `;
                 container.appendChild(item);
                 
-                // 개별 슬라이드 카드 내부에 대해서만 KaTeX 수식 렌더링 적용
                 renderMathInContainer(item);
             });
         }
 
         function selectOption(qId, optNum) {
-            // 리뷰 모드(오답노트 또는 전체 해설)에서는 답변 변경 불가
             if (examMode === 'review_wrong' || examMode === 'review_all') return;
             if (isAnswerLocked[qId] && examMode === 'exam') return;
 
@@ -1035,16 +1035,31 @@
             }
         }
 
+        // OMR 필터 탭 동적 렌더링 (제출 전 vs 제출 후 구분)
+        function renderOmrFilterTabs() {
+            const container = document.getElementById('omrFilterContainer');
+            container.innerHTML = '';
+
+            if (!isSubmitted) {
+                // 제출 전: 전체, 미풀이, 검토
+                container.innerHTML = `
+                    <button onclick="setOmrFilter('all')" id="filterBtn-all" class="flex-1 py-1 rounded-lg ${omrFilter === 'all' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">전체</button>
+                    <button onclick="setOmrFilter('unanswered')" id="filterBtn-unanswered" class="flex-1 py-1 rounded-lg ${omrFilter === 'unanswered' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">미풀이</button>
+                    <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg ${omrFilter === 'flagged' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">검토★</button>
+                `;
+            } else {
+                // 제출 후: 전체, 오답, 검토
+                container.innerHTML = `
+                    <button onclick="setOmrFilter('all')" id="filterBtn-all" class="flex-1 py-1 rounded-lg ${omrFilter === 'all' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">전체</button>
+                    <button onclick="setOmrFilter('wrong')" id="filterBtn-wrong" class="flex-1 py-1 rounded-lg ${omrFilter === 'wrong' ? 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">오답</button>
+                    <button onclick="setOmrFilter('flagged')" id="filterBtn-flagged" class="flex-1 py-1 rounded-lg ${omrFilter === 'flagged' ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'}">검토★</button>
+                `;
+            }
+        }
+
         function setOmrFilter(filter) {
             omrFilter = filter;
-            ['all', 'unanswered', 'flagged'].forEach(f => {
-                const btn = document.getElementById(`filterBtn-${f}`);
-                if (f === filter) {
-                    btn.className = "flex-1 py-1 rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-xs";
-                } else {
-                    btn.className = "flex-1 py-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800";
-                }
-            });
+            renderOmrFilterTabs();
             renderOMR();
         }
 
@@ -1057,10 +1072,17 @@
             currentQuestions.forEach((q, idx) => {
                 const isAnswered = userAnswers[q.id] !== undefined;
                 const isFlagged = !!flaggedQuestions[q.id];
+                const isWrong = userAnswers[q.id] !== q.answer; // 미풀이 또는 오답
+                
                 if (isAnswered) answeredCount++;
 
-                if (omrFilter === 'unanswered' && isAnswered) return;
-                if (omrFilter === 'flagged' && !isFlagged) return;
+                if (!isSubmitted) {
+                    if (omrFilter === 'unanswered' && isAnswered) return;
+                    if (omrFilter === 'flagged' && !isFlagged) return;
+                } else {
+                    if (omrFilter === 'wrong' && !isWrong) return;
+                    if (omrFilter === 'flagged' && !isFlagged) return;
+                }
 
                 const item = document.createElement('div');
                 item.id = `omr-item-${idx}`;
@@ -1080,8 +1102,7 @@
                         btnStyle = "bg-blue-600 border-blue-600 text-white shadow-xs font-bold";
                     }
 
-                    // 리뷰 모드일 때 채점 결과 색상 반영
-                    if ((examMode === 'review_wrong' || examMode === 'review_all') && selected) {
+                    if ((examMode === 'review_wrong' || examMode === 'review_all' || isSubmitted) && selected) {
                         if (q.answer === i) {
                             btnStyle = "bg-emerald-600 border-emerald-600 text-white shadow-xs font-bold";
                         } else {
@@ -1220,6 +1241,8 @@
 
         function submitExam() {
             clearInterval(timerInterval);
+            isSubmitted = true;
+            omrFilter = "all"; // 제출 직후 전체 탭으로 기본 선택
 
             originalQuestions.forEach(q => {
                 isAnswerLocked[q.id] = true;
@@ -1230,7 +1253,6 @@
 
             originalQuestions.forEach(q => {
                 const userAns = userAnswers[q.id];
-                // 미풀이(undefined)는 오답으로 처리됨
                 const isCorrect = userAns !== undefined && userAns === q.answer;
 
                 if (isCorrect) correctCount++;
@@ -1246,7 +1268,6 @@
             const score = Math.round((correctCount / originalQuestions.length) * 100);
             const isPass = score >= 60;
 
-            // 틀린 문제 및 미풀이 문제 모두 오답노트에 포함 (userAnswers[q.id] !== q.answer)
             const wrongQuestionsCount = originalQuestions.filter(q => userAnswers[q.id] !== q.answer).length;
             document.getElementById('wrongCountBadge').textContent = wrongQuestionsCount;
 
@@ -1287,10 +1308,13 @@
                 `;
                 subjectContainer.appendChild(card);
             }
+
+            // 제출 상태로 OMR 필터 탭 갱신
+            renderOmrFilterTabs();
+            renderOMR();
         }
 
         function reviewWrongAnswersOnly() {
-            // 미풀이(답안이 없는 경우)와 오답을 모두 오답노트 목록에 포함
             const wrongList = originalQuestions.filter(q => userAnswers[q.id] !== q.answer);
             if (wrongList.length === 0) {
                 showModal("오답노트", "틀린 문제가 없습니다! 모든 문제를 맞히셨습니다 🎉", [{
@@ -1307,11 +1331,11 @@
             document.getElementById('examScreen').classList.remove('hidden');
             document.getElementById('progressBarContainer').classList.remove('hidden');
 
-            // 오답노트 모드에서는 OMR 제출 버튼 숨김 및 타이머 숨김
             document.getElementById('omrSubmitContainer').style.display = 'none';
             document.getElementById('omrTitleHeader').innerHTML = '<i class="fa-solid fa-xmark text-rose-500 mr-2"></i> 오답노트 보기';
             document.getElementById('timerContainer').classList.add('hidden');
 
+            renderOmrFilterTabs();
             renderSlides();
             renderOMR();
             updateSlidePosition();
@@ -1326,11 +1350,11 @@
             document.getElementById('examScreen').classList.remove('hidden');
             document.getElementById('progressBarContainer').classList.remove('hidden');
 
-            // 전체 해설 보기 모드에서도 OMR 제출 버튼 숨김 및 타이머 숨김
             document.getElementById('omrSubmitContainer').style.display = 'none';
             document.getElementById('omrTitleHeader').innerHTML = '<i class="fa-solid fa-check-double text-blue-500 mr-2"></i> 전체 해설 보기';
             document.getElementById('timerContainer').classList.add('hidden');
 
+            renderOmrFilterTabs();
             renderSlides();
             renderOMR();
             updateSlidePosition();
@@ -1338,13 +1362,14 @@
 
         function resetToStart() {
             clearInterval(timerInterval);
+            isSubmitted = false;
+            omrFilter = "all";
             document.getElementById('resultScreen').classList.add('hidden');
             document.getElementById('examScreen').classList.add('hidden');
             document.getElementById('progressBarContainer').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('hidden');
             document.getElementById('timerContainer').classList.add('hidden');
             
-            // 메인 화면으로 돌아갈 때 헤더 제목을 올바르게 복원
             document.getElementById('headerTitle').textContent = "승강기기능사 CBT";
         }
 
