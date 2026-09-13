@@ -1230,7 +1230,8 @@
 
             originalQuestions.forEach(q => {
                 const userAns = userAnswers[q.id];
-                const isCorrect = userAns === q.answer;
+                // 미풀이(undefined)는 오답으로 처리됨
+                const isCorrect = userAns !== undefined && userAns === q.answer;
 
                 if (isCorrect) correctCount++;
 
@@ -1245,7 +1246,7 @@
             const score = Math.round((correctCount / originalQuestions.length) * 100);
             const isPass = score >= 60;
 
-            // 틀린 문제 개수 계산
+            // 틀린 문제 및 미풀이 문제 모두 오답노트에 포함 (userAnswers[q.id] !== q.answer)
             const wrongQuestionsCount = originalQuestions.filter(q => userAnswers[q.id] !== q.answer).length;
             document.getElementById('wrongCountBadge').textContent = wrongQuestionsCount;
 
@@ -1289,6 +1290,7 @@
         }
 
         function reviewWrongAnswersOnly() {
+            // 미풀이(답안이 없는 경우)와 오답을 모두 오답노트 목록에 포함
             const wrongList = originalQuestions.filter(q => userAnswers[q.id] !== q.answer);
             if (wrongList.length === 0) {
                 showModal("오답노트", "틀린 문제가 없습니다! 모든 문제를 맞히셨습니다 🎉", [{
